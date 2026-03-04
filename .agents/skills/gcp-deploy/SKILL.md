@@ -34,6 +34,7 @@ Blue-green topology, validation, and data-disk lifecycle guardrails are defined 
 
 ## Deployment Scope
 Only blue-green deployments are in scope. Do not add or reference non-blue-green deployment paths in this skill.
+Deployment health must use `GET /healthy`; do not rely on Swagger endpoints for readiness or load-balancer checks.
 
 ## Blue-Green Deployment Flow
 1. Configure `terraform.tfvars` from `environments/dev/terraform.tfvars.example`.
@@ -42,6 +43,7 @@ Only blue-green deployments are in scope. Do not add or reference non-blue-green
 4. `tofu plan`.
 5. `tofu apply`.
 6. Verify the active backend switched as expected and health checks pass before traffic cutover is considered complete.
+   - Health validation target: `http://127.0.0.1:8080/healthy` (or equivalent backend health check path `/healthy`).
 7. Confirm persistent application data remains intact after rollout.
 
 ## Hardening Rules

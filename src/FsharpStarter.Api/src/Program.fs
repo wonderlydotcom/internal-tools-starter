@@ -1,3 +1,4 @@
+open System
 open System.Diagnostics
 open Microsoft.AspNetCore.Builder
 open Microsoft.Extensions.Configuration
@@ -46,6 +47,7 @@ let main args =
 
     app.UseHttpsRedirection() |> ignore
     app.UseStaticFiles() |> ignore
+    app.MapGet("/healthy", Func<string>(fun () -> "OK")) |> ignore
     app.MapControllers() |> ignore
     app.MapFallbackToFile("index.html") |> ignore
     app.Run()

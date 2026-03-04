@@ -27,6 +27,7 @@ Use these cost-focused defaults unless the user requests otherwise:
 - one persistent data disk used by the blue/green VM
 - primary MIG behind HTTPS load balancer (stateless instances)
 - optional blue-green single VM + unmanaged instance group as alternate backend
+- configure backend health checks to target `GET /healthy` (never Swagger paths)
 3. Enforce persistent-disk guardrails:
 - Keep `google_compute_disk` in a protected resource with `lifecycle { prevent_destroy = true }`.
 - Model a protected/unprotected disk pair, then select active disk self-link via a local expression.

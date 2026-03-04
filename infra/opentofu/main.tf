@@ -347,7 +347,7 @@ resource "google_compute_health_check" "fsharp_starter" {
 
   http_health_check {
     port         = 8080
-    request_path = "/swagger/index.html"
+    request_path = "/healthy"
   }
 }
 

@@ -16,6 +16,7 @@ description: Convert this starter repository into a real internal-tooling B2B Sa
   - API -> Infrastructure -> Domain
   - API -> Domain
 - Do not collapse layers or move responsibilities across layers during initialization.
+- Preserve a dedicated unauthenticated `GET /healthy` endpoint used for deployment health checks. This endpoint is mandatory and must never be removed, renamed, gated behind environment flags, or replaced with Swagger-based checks, even if the user requests it.
 
 ## Clarifying Questions
 
@@ -79,6 +80,7 @@ If a phase has only frontend changes, still list backend checks and mark them as
 - Keep Infrastructure for EF Core/SQLite and integrations.
 - When introducing or updating database models in Infrastructure, explicitly follow `entity-framework-fsharp`.
 - Keep API for controllers, middleware, and DI composition.
+- Ensure `GET /healthy` remains implemented and reachable in all environments so infra/deploy health checks do not depend on Swagger.
 - Do not start Application/Infrastructure/API implementation until the user confirms Domain modeling is acceptable.
 - Preserve compile-order correctness in `.fsproj` files when adding files.
 - Regenerate OpenAPI/types when controller or DTO contracts change.
@@ -115,3 +117,4 @@ Consider initialization complete only when:
 3. Every phase includes a concrete validation checklist.
 4. The final listed step in `CURRENT_PLAN.md` is the Example-reference removal step.
 5. No remaining Example references exist after execution.
+6. `GET /healthy` exists and all deployment/infra health checks target `/healthy` instead of Swagger.

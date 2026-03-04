@@ -87,7 +87,7 @@ wait_local_health() {
   local vm="$1" start
   start="$(now)"
   while true; do
-    if gcloud compute ssh "$vm" --project "$GCP_PROJECT_ID" --zone "$GCP_VM_ZONE" --tunnel-through-iap --command "curl -fsS http://127.0.0.1:8080/swagger/index.html >/dev/null" >/dev/null 2>&1; then
+    if gcloud compute ssh "$vm" --project "$GCP_PROJECT_ID" --zone "$GCP_VM_ZONE" --tunnel-through-iap --command "curl -fsS http://127.0.0.1:8080/healthy >/dev/null" >/dev/null 2>&1; then
       return 0
     fi
     if (( "$(now)" - start > 600 )); then

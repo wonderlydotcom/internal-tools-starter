@@ -1,6 +1,6 @@
 ---
 name: init
-description: Convert this starter repository into a real internal-tooling B2B SaaS project while preserving the Domain/Application/Infrastructure/API architecture. Use when a user asks to initialize or de-template the repo, define project-specific scope, write a new CURRENT_PLAN.md from scratch, and execute phased migration with validation checkpoints. This skill must ask 3-5 clarifying questions before planning and must place removal of all Example references as the final plan step.
+description: Convert this starter repository into a real internal-tooling B2B SaaS project while preserving the Domain/Application/Infrastructure/API architecture. Use when a user asks to initialize or de-template the repo, define project-specific scope, write a new CURRENT_PLAN.md from scratch, and execute phased migration with validation checkpoints. This skill must ask 3-5 clarifying questions before planning, must explicitly confirm whether auth is fine-grained or coarse-grained, and must place removal of all Example references as the final plan step.
 ---
 
 # Init
@@ -9,6 +9,8 @@ description: Convert this starter repository into a real internal-tooling B2B Sa
 
 - Treat this skill as a one-time repository initialization workflow.
 - Ask 3-5 clarifying questions before writing the plan.
+- Require an explicit auth choice from the user: `fine-grained` or `coarse-grained`.
+- If auth granularity is not explicitly provided, ask a direct clarifying question and do not assume.
 - Create `CURRENT_PLAN.md` from scratch for this run.
 - Start implementation from the Domain layer first and require explicit user confirmation before progressing to later layers.
 - Preserve the existing architecture layers and boundaries:
@@ -27,6 +29,8 @@ Cover these areas unless already answered:
 2. Core first workflow: the first business capability to replace starter behavior.
 3. Domain language: key entities, commands, and events to introduce first.
 4. Operational constraints: auth, environment, compliance, or deployment constraints.
+   - Auth granularity is mandatory: ask whether authorization must be `fine-grained` or `coarse-grained`.
+   - If not answered, ask explicitly before planning.
 5. Non-goals for initial conversion to prevent scope creep.
 
 If the user already provided some answers, ask only the missing questions and stay within 3-5 total.
@@ -49,6 +53,9 @@ Use this structure:
    - In Phase 1, explicitly reference `domain-driven-design` skill as required guidance for modeling aggregates, invariants, errors, and domain events.
    - For any phase that sets up or changes database models, require `entity-framework-fsharp` as implementation guidance for EF/SQLite mapping, schema alignment, and repository query safety.
    - Include an explicit phase to add an audit log controller, using `event-sourcing-audit` skill guidance.
+   - Add an explicit auth-infrastructure phase based on the user's chosen auth granularity:
+     - If `fine-grained`: keep/plan OpenFGA integration as needed.
+     - If `coarse-grained`: include removal of all OpenFGA references from runtime and deploy assets.
 
 3. **Final Step Requirement**
    - The last step in the phased plan must be:
@@ -85,6 +92,24 @@ If a phase has only frontend changes, still list backend checks and mark them as
 - Preserve compile-order correctness in `.fsproj` files when adding files.
 - Regenerate OpenAPI/types when controller or DTO contracts change.
 
+## Auth Granularity Rules
+
+- The user must explicitly choose one:
+  - `fine-grained` auth (OpenFGA/relationship-based authorization may remain).
+  - `coarse-grained` auth (OpenFGA must be fully removed).
+- Never infer auth granularity from context; ask if missing.
+- If `coarse-grained` is selected, `CURRENT_PLAN.md` must contain a dedicated phase that removes all OpenFGA references from:
+  - Docker Compose files
+  - GCE deploy scripts
+  - OpenTofu startup templates
+- The coarse-grained removal phase must explicitly include these files where present:
+  - `infra/opentofu/templates/startup.sh.tmpl`
+  - `infra/opentofu/templates/startup-bluegreen.sh.tmpl`
+  - `scripts/deploy-gce.sh`
+  - `scripts/bluegreen-deploy.sh`
+  - Any compose file under repo root/infra/scripts that references OpenFGA (for example `docker-compose*.yml`)
+- In coarse-grained mode, remove OpenFGA env vars, services, startup checks, container references, and script flags/arguments that depend on OpenFGA.
+
 ## Mandatory Audit Log Planning
 
 - Always plan audit logging for day-1 B2B SaaS readiness, even if the user does not request it.
@@ -118,3 +143,5 @@ Consider initialization complete only when:
 4. The final listed step in `CURRENT_PLAN.md` is the Example-reference removal step.
 5. No remaining Example references exist after execution.
 6. `GET /healthy` exists and all deployment/infra health checks target `/healthy` instead of Swagger.
+7. Auth granularity was explicitly confirmed with the user (`fine-grained` or `coarse-grained`) before planning.
+8. If `coarse-grained` was chosen, no OpenFGA references remain in compose files, GCE deploy scripts, or OpenTofu startup templates.

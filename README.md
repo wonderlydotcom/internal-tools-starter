@@ -95,8 +95,33 @@ After each meaningful change:
 When copying this repo for a new project:
 1. Pick your project name and replace `FsharpStarter` / `fsharp-starter` tokens.
 2. Update deploy/environment values (domain names, image names, cloud project IDs).
-3. Create your own `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example`.
-4. Run `scripts/template-sanity-check.sh` and fix anything it reports.
+3. Create your own `infra/foundation/opentofu/terraform.tfvars` from `infra/foundation/opentofu/terraform.tfvars.example`.
+4. Create your own `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example`.
+5. Run `scripts/template-sanity-check.sh` and fix anything it reports.
+
+## Infrastructure Stacks
+- `infra/foundation/opentofu`: bootstrap resources that must exist before the main app stack can use remote state or CI deploy identity
+- `infra/opentofu`: the app/runtime stack that owns network, compute, load balancing, Artifact Registry, secrets wiring, and blue/green resources
+
+Foundation should be applied first. The app stack should keep using a GCS backend config sourced from the foundation bucket.
+
+Example bootstrap flow:
+
+```bash
+cp infra/foundation/opentofu/terraform.tfvars.example infra/foundation/opentofu/terraform.tfvars
+cd infra/foundation/opentofu
+tofu init -backend=false
+tofu apply
+
+cp backend.hcl.example backend.hcl
+tofu init -migrate-state -backend-config=backend.hcl
+
+cd ../../opentofu
+cp backend.hcl.example backend.hcl
+cp environments/dev/terraform.tfvars.example terraform.tfvars
+tofu init -backend-config=backend.hcl
+tofu apply
+```
 
 ## Template Guardrail Script
 ```bash
@@ -105,4 +130,4 @@ scripts/template-sanity-check.sh
 
 This script fails if it finds:
 - Legacy copied-project markers
-- Local deploy/state artifacts that should not be part of the template (`terraform.tfstate*`, `terraform.tfvars`, `www/dist`)
+- Local deploy/state artifacts that should not be part of the template (`terraform.tfstate*`, `terraform.tfvars`, `backend.hcl`, `www/dist`)

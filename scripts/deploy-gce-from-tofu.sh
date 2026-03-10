@@ -2,6 +2,10 @@
 set -euo pipefail
 
 INFRA_DIR="${INFRA_DIR:-infra/opentofu}"
+TOFU_BACKEND_CONFIG_FILE="${TOFU_BACKEND_CONFIG_FILE:-}"
+TOFU_BACKEND_BUCKET="${TOFU_BACKEND_BUCKET:-}"
+TOFU_BACKEND_PREFIX="${TOFU_BACKEND_PREFIX:-}"
+TOFU_BACKEND_IMPERSONATE_SERVICE_ACCOUNT="${TOFU_BACKEND_IMPERSONATE_SERVICE_ACCOUNT:-}"
 
 if ! command -v tofu >/dev/null 2>&1; then
   echo "tofu is required" >&2
@@ -18,7 +22,31 @@ if [[ ! -d "${INFRA_DIR}" ]]; then
   exit 1
 fi
 
+tofu_init_args=(init -input=false)
+
+if [[ -n "${TOFU_BACKEND_CONFIG_FILE}" ]]; then
+  if [[ ! -f "${TOFU_BACKEND_CONFIG_FILE}" ]]; then
+    echo "Missing backend config file: ${TOFU_BACKEND_CONFIG_FILE}" >&2
+    exit 1
+  fi
+
+  tofu_init_args+=("-backend-config=${TOFU_BACKEND_CONFIG_FILE}")
+else
+  if [[ -n "${TOFU_BACKEND_BUCKET}" ]]; then
+    tofu_init_args+=("-backend-config=bucket=${TOFU_BACKEND_BUCKET}")
+  fi
+
+  if [[ -n "${TOFU_BACKEND_PREFIX}" ]]; then
+    tofu_init_args+=("-backend-config=prefix=${TOFU_BACKEND_PREFIX}")
+  fi
+
+  if [[ -n "${TOFU_BACKEND_IMPERSONATE_SERVICE_ACCOUNT}" ]]; then
+    tofu_init_args+=("-backend-config=impersonate_service_account=${TOFU_BACKEND_IMPERSONATE_SERVICE_ACCOUNT}")
+  fi
+fi
+
 pushd "${INFRA_DIR}" >/dev/null
+tofu "${tofu_init_args[@]}" >/dev/null
 output_json="$(tofu output -json)"
 popd >/dev/null
 

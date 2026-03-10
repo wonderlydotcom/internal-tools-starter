@@ -9,6 +9,11 @@ FAIL=0
 echo "Running template sanity checks..."
 
 declare -a BLOCKED_PATHS=(
+  "infra/foundation/opentofu/backend.hcl"
+  "infra/foundation/opentofu/terraform.tfvars"
+  "infra/foundation/opentofu/terraform.tfstate"
+  "infra/foundation/opentofu/terraform.tfstate.backup"
+  "infra/opentofu/backend.hcl"
   "infra/opentofu/terraform.tfvars"
   "infra/opentofu/terraform.tfstate"
   "infra/opentofu/terraform.tfstate.backup"

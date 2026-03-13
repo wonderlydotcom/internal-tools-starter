@@ -1,17 +1,16 @@
 ---
 name: deploy-github-actions
-description: Create or update a GitHub Actions deployment workflow for this repository that runs automatically after pull requests are merged to the default branch. Use when Codex needs to add `.github/workflows/deploy.yml`, port the existing GCP/OpenTofu deploy flow from `~/workspace/customer-dash`, wire GitHub Actions variables for Workload Identity based deploys, or keep this repo's merge-to-deploy automation aligned with its deploy scripts and infra layout.
+description: Create or update a GitHub Actions deployment workflow for this repository that runs automatically after pull requests are merged to the default branch. Use when Codex needs to add `.github/workflows/deploy.yml`, wire GitHub Actions variables for Workload Identity based deploys, or keep this repo's merge-to-deploy automation aligned with the shared-cluster deploy scripts and infra layout.
 ---
 
 # Deploy Github Actions
 
-Create `.github/workflows/deploy.yml` for this repo's GCP deploy path. Follow the deployment shape already proven in `~/workspace/customer-dash/.github/workflows/deploy-gce.yml`, but adapt it to this repository instead of copying names blindly.
+Create `.github/workflows/deploy.yml` for this repo's GCP deploy path. Adapt the workflow to this repository's shared-cluster deployment shape instead of copying VM-era names or entrypoints.
 
 ## Workflow
 1. Inspect the source workflow summary in `references/customer-dash-deploy.md`.
 2. Inspect this repo's deploy entrypoints before editing:
-   - `scripts/deploy-gce-from-tofu.sh`
-   - `scripts/deploy-gce.sh`
+   - `scripts/deploy-app-from-tofu.sh`
    - `infra/opentofu/*`
 3. Create or update `.github/workflows/deploy.yml`.
 4. Preserve the same control flow unless the repo layout requires a change:
@@ -29,7 +28,7 @@ Create `.github/workflows/deploy.yml` for this repo's GCP deploy path. Follow th
 - Name the workflow file `.github/workflows/deploy.yml`.
 - Keep the job name and step names clear, but they do not need to match `customer-dash` exactly.
 - Do not hard-code the branch name without checking the repo default branch first.
-- Prefer the existing deploy entrypoint `./scripts/deploy-gce-from-tofu.sh`.
+- Prefer the existing deploy entrypoint `./scripts/deploy-app-from-tofu.sh`.
 - Set `INFRA_DIR` to `infra/opentofu` unless the repo has moved it.
 - Pass backend configuration via GitHub Actions variables, not checked-in secrets files.
 - Fail early if required repo variables are missing.

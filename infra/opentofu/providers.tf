@@ -1,5 +1,3 @@
-provider "google" {
-  project = local.project_id
-  region  = local.region
-  zone    = local.zone
+provider "kubernetes" {
+  config_path = pathexpand(var.kubeconfig_path)
 }

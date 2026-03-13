@@ -48,13 +48,17 @@ API -> Domain
 
 ## Skills
 Optional capabilities are documented under `.agents/skills`:
+- `db-migrations`
 - `entity-framework-fsharp`
+- `iac`
 - `new-controller`
 - `event-sourcing-audit`
 - `otel-tracing`
 - `fsharp-debugger`
 - `iap-auth`
 - `openfga`
+- `opentofu`
+- `deploy-github-actions`
 - `gcp-deploy`
 - `review-backend`
 - `review-frontend`
@@ -95,44 +99,11 @@ After each meaningful change:
 When copying this repo for a new project:
 1. Pick your project name and replace `FsharpStarter` / `fsharp-starter` tokens.
 2. Update deploy/environment values (domain names, image names, cloud project IDs).
-3. Create your own `infra/foundation/opentofu/terraform.tfvars` from `infra/foundation/opentofu/terraform.tfvars.example`.
-4. Create your own `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example`.
-5. Run `scripts/template-sanity-check.sh` and fix anything it reports.
-
-## Infrastructure Stacks
-- `infra/foundation/opentofu`: bootstrap resources that must exist before the main app stack can use remote state or CI deploy identity
-- `infra/opentofu`: the app/runtime stack that owns network, compute, load balancing, Artifact Registry, secrets wiring, and blue/green resources
-
-Foundation should be applied first. The app stack should keep using a GCS backend config sourced from the foundation bucket.
-
-Example bootstrap flow:
-
-```bash
-cp infra/foundation/opentofu/terraform.tfvars.example infra/foundation/opentofu/terraform.tfvars
-cd infra/foundation/opentofu
-tofu init -backend=false
-tofu apply
-
-cp backend.hcl.example backend.hcl
-tofu init -migrate-state -backend-config=backend.hcl
-
-cd ../../opentofu
-cp backend.hcl.example backend.hcl
-cp environments/dev/terraform.tfvars.example terraform.tfvars
-tofu init -backend-config=backend.hcl
-tofu apply
-```
-
-Both stacks pin GCP location settings in code:
-- project: `wonderly-idp-sso`
-- region: `us-central1`
-- zone: `us-central1-a`
-
-Infrastructure naming now derives from a single `project_name` input:
-- default state bucket: `iac-state-<project-name>`
-- default GitHub repo: `internal-tools-<project-name>`
-- default domain: `<project-name>.wonderly.info`
-- default deploy branch: `master`
+3. Create your own `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example`.
+4. Point `infra/opentofu/backend.gcs.hcl.example` at the `state_bucket_name` from `../internal-tools-infra/platform/apps`.
+5. Use `scripts/deploy-app-from-tofu.sh` for image build, push, and rollout after the shared app contract exists.
+6. Run `scripts/template-sanity-check.sh` and fix anything it reports.
+If you also use the optional bootstrap stack in `infra/foundation/opentofu`, create its `terraform.tfvars` from the committed example before applying it.
 
 ## Template Guardrail Script
 ```bash

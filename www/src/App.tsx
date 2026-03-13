@@ -11,8 +11,8 @@ const App = () => {
           <CardContent className="space-y-3">
             <p>Hexagonal F# starter template with EF Core + SQLite defaults.</p>
             <p>
-              Optional capabilities (IAP auth, OpenFGA, GCP deployment) are
-              documented in <code>.agents/skills</code>.
+              Optional capabilities like IAP auth, OpenFGA, and shared-platform
+              deployment are documented in <code>.agents/skills</code>.
             </p>
           </CardContent>
         </Card>

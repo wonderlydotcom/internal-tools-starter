@@ -1,64 +1,55 @@
 ---
 name: gcp-deploy
-description: Use when performing blue-green deployments of the starter to Google Compute Engine with Docker Compose and OpenTofu. For infra architecture and safety guardrails, use the iac skill.
+description: Use when deploying the starter into the shared internal-tools GKE platform with Artifact Registry, kubectl, and app-owned OpenTofu. For infra contract design and tenancy guardrails, use the iac skill.
 ---
 
 # Skill: gcp-deploy
 
-Use this when performing blue-green deployments of the starter to Google Compute Engine.
+Use this when deploying the starter app into the shared internal-tools GKE cluster.
 
-This skill is deployment-operations focused. For OpenTofu infrastructure design, resource topology, and persistent-disk safety constraints, defer to `iac`:
+This skill is deployment-operations focused. For OpenTofu infrastructure design, platform contract shape, and tenancy guardrails, defer to `iac`:
 - `.agents/skills/iac/SKILL.md`
 
 ## Source Summary
 This skill summarizes:
-- `docker-compose.gce.yml`
+- `scripts/deploy-app-from-tofu.sh`
 - `infra/opentofu/*`
+- `../internal-tools-infra/docs/app-onboarding.md`
 
-## Runtime Topology (docker-compose.gce)
-- `fsharp-starter-api`: ASP.NET API container, mounts persistent sqlite data at `/app/data`.
+## Runtime Topology
+- `../internal-tools-infra` owns namespace, service account, PVC, Service, Ingress, IAP, DNS, and network policy.
+- `infra/opentofu` in this repo owns only app deployment resources inside that platform-created namespace.
+- `scripts/deploy-app-from-tofu.sh` builds and pushes the image, applies `infra/opentofu`, and waits for the StatefulSet rollout.
 
 ## Data/Secrets Expectations
-- App data root default: `${FSHARP_STARTER_DATA_ROOT:-/mnt/fsharp-starter-data}`.
-- SQLite DB file under mounted `/app/data`.
+- The workload mounts the platform-managed PVC named by the app contract.
+- SQLite stays under `/app/data` by default.
+- Runtime secrets come from the platform-managed `SecretProviderClass` when the contract declares one.
 
 ## OpenTofu Summary
 Main files:
-- `infra/opentofu/main.tf`: VM, firewall, startup template wiring.
-- `infra/opentofu/variables.tf`: project/region/zone/network/image/instance parameters.
+- `infra/opentofu/main.tf`: app-owned StatefulSet plus optional ConfigMap.
+- `infra/opentofu/variables.tf`: platform contract inputs and deployment settings.
 - `infra/opentofu/providers.tf` and `versions.tf`: provider and version pins.
-- `infra/opentofu/templates/startup.sh.tmpl`: bootstrap script installing Docker/Compose and running deployment.
-- `infra/opentofu/outputs.tf`: exported deployment values.
-
-Blue-green topology, validation, and data-disk lifecycle guardrails are defined by the `iac` skill and must be preserved.
-
-## Deployment Scope
-Only blue-green deployments are in scope. Do not add or reference non-blue-green deployment paths in this skill.
-Deployment health must use `GET /healthy`; do not rely on Swagger endpoints for readiness or load-balancer checks.
-
-## Blue-Green Deployment Flow
-1. Configure `terraform.tfvars` from `environments/dev/terraform.tfvars.example`.
-2. Confirm blue-green settings are enabled in infra variables and compliant with `iac` safety rules.
-3. `tofu init`.
-4. `tofu plan`.
-5. `tofu apply`.
-6. Verify the active backend switched as expected and health checks pass before traffic cutover is considered complete.
-   - Health validation target: `http://127.0.0.1:8080/healthy` (or equivalent backend health check path `/healthy`).
-7. Confirm persistent application data remains intact after rollout.
+- `infra/opentofu/outputs.tf`: exported deployment values used by the deploy script.
 
 ## Hardening Rules
-- Follow `iac` as the source of truth for blue-green safety constraints and disk-protection requirements.
-- Reject any change that introduces single-path/in-place deployment guidance.
-- Treat deploy scripts and infra templates as production code (strict shell mode, robust auth paths, explicit compatibility checks).
-- Avoid brittle inline token expansion in templated shell/systemd snippets; isolate auth logic in dedicated scripts.
-- Handle environment variance explicitly (Compose v1/v2 behavior, IAP tunnel flags, image tag policy like `latest`).
-- When changing startup/deploy auth flows, validate in a realistic VM path, not only local shell execution.
+- Follow `iac` as the source of truth for platform contract ownership boundaries.
+- Do not add app-repo logic that recreates namespace, ingress, IAP, DNS, Service, PVC, or NetworkPolicy resources.
+- Treat deploy scripts as production code: strict shell mode, clear env overrides, explicit tool checks, and no hidden mutable state.
+- Prefer immutable image tags for rollout, even if `PUBLISH_LATEST=true` is used for convenience.
+- Validate rollout against the platform-created StatefulSet namespace, not a VM path.
+
+## Deployment Flow
+1. Pull the app contract from `../internal-tools-infra/platform/apps output -json app_contracts`.
+2. Configure `infra/opentofu/terraform.tfvars` and backend GCS settings from that contract.
+3. Run `scripts/deploy-app-from-tofu.sh`.
+4. Confirm `kubectl rollout status` succeeds for the StatefulSet.
+5. Verify the application responds on the platform health check path through the shared ingress.
 
 ## Verification Commands
-After blue-green infra edits:
-1. `cd infra/opentofu && tofu fmt -recursive`
-2. `cd infra/opentofu && tofu validate`
-3. `cd infra/opentofu && tofu plan -out=tfplan`
-4. `cd infra/opentofu && tofu show -json tfplan > /tmp/tfplan.json`
-5. `python3 .agents/skills/iac/scripts/check_no_disk_delete.py /tmp/tfplan.json`
-6. `docker compose -f docker-compose.gce.yml config`
+After deployment-path edits:
+1. `bash -n scripts/deploy-app-from-tofu.sh`
+2. `tofu -chdir=infra/opentofu fmt -recursive`
+3. `tofu -chdir=infra/opentofu validate`
+4. `scripts/deploy-app-from-tofu.sh --help`

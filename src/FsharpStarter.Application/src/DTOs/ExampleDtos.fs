@@ -6,8 +6,9 @@ open System
 type CreateExampleRequestDto = { Name: string }
 
 [<CLIMutable>]
-type ExampleResponseDto =
-    { Id: Guid
-      Name: string
-      CreatedAt: DateTime
-      Version: int }
+type ExampleResponseDto = {
+    Id: Guid
+    Name: string
+    CreatedAt: DateTime
+    Version: int
+}

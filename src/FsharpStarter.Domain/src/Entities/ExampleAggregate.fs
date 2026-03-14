@@ -5,10 +5,11 @@ open FsharpStarter.Domain
 open FsharpStarter.Domain.Events
 open FsharpStarter.Domain.ValueObjects
 
-type ExampleState =
-    { Id: ExampleId
-      Name: string
-      CreatedAt: DateTime }
+type ExampleState = {
+    Id: ExampleId
+    Name: string
+    CreatedAt: DateTime
+}
 
 type ExampleAggregate private () =
     inherit EventSourcingAggregate<ExampleDomainEvent>()
@@ -24,10 +25,11 @@ type ExampleAggregate private () =
         match domainEvent.EventType with
         | ExampleCreated ->
             state <-
-                Some
-                    { Id = domainEvent.AggregateId
-                      Name = domainEvent.Data.Name
-                      CreatedAt = ExampleAggregate.NormalizeUtc domainEvent.OccurredAt }
+                Some {
+                    Id = domainEvent.AggregateId
+                    Name = domainEvent.Data.Name
+                    CreatedAt = ExampleAggregate.NormalizeUtc domainEvent.OccurredAt
+                }
 
     member private _.EventVersion(domainEvent: ExampleDomainEvent) = domainEvent.Version
 
@@ -38,13 +40,14 @@ type ExampleAggregate private () =
             let aggregate = ExampleAggregate()
             let normalizedCreatedAt = ExampleAggregate.NormalizeUtc createdAt
 
-            let eventData =
-                { EventId = Guid.NewGuid()
-                  AggregateId = id
-                  Version = 1
-                  OccurredAt = normalizedCreatedAt
-                  EventType = ExampleCreated
-                  Data = { Name = name.Trim() } }
+            let eventData = {
+                EventId = Guid.NewGuid()
+                AggregateId = id
+                Version = 1
+                OccurredAt = normalizedCreatedAt
+                EventType = ExampleCreated
+                Data = { Name = name.Trim() }
+            }
 
             aggregate.Raise(eventData, aggregate.Apply, aggregate.EventVersion)
             Ok aggregate

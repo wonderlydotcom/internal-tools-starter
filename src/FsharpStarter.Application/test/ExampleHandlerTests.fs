@@ -14,21 +14,19 @@ type InMemoryExampleRepository() =
     let store = Dictionary<Guid, ExampleAggregate>()
 
     interface IExampleRepository with
-        member _.Save(aggregate: ExampleAggregate) =
-            async {
-                match aggregate.State with
-                | None -> return Error(PersistenceError "State missing")
-                | Some state ->
-                    store[ExampleId.value state.Id] <- aggregate
-                    return Ok()
-            }
+        member _.Save(aggregate: ExampleAggregate) = async {
+            match aggregate.State with
+            | None -> return Error(PersistenceError "State missing")
+            | Some state ->
+                store[ExampleId.value state.Id] <- aggregate
+                return Ok()
+        }
 
-        member _.GetById(id: ExampleId) =
-            async {
-                match store.TryGetValue(ExampleId.value id) with
-                | true, aggregate -> return Ok(Some aggregate)
-                | false, _ -> return Ok None
-            }
+        member _.GetById(id: ExampleId) = async {
+            match store.TryGetValue(ExampleId.value id) with
+            | true, aggregate -> return Ok(Some aggregate)
+            | false, _ -> return Ok None
+        }
 
 [<Fact>]
 let ``Create then get returns canonical response`` () =

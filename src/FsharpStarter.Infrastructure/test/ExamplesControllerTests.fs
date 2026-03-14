@@ -16,21 +16,19 @@ type InMemoryExampleRepository() =
     let mutable aggregateById: Map<Guid, ExampleAggregate> = Map.empty
 
     interface IExampleRepository with
-        member _.Save(aggregate: ExampleAggregate) =
-            async {
-                match aggregate.State with
-                | None -> return Error(PersistenceError "State missing")
-                | Some state ->
-                    aggregateById <- aggregateById.Add(ExampleId.value state.Id, aggregate)
-                    return Ok()
-            }
+        member _.Save(aggregate: ExampleAggregate) = async {
+            match aggregate.State with
+            | None -> return Error(PersistenceError "State missing")
+            | Some state ->
+                aggregateById <- aggregateById.Add(ExampleId.value state.Id, aggregate)
+                return Ok()
+        }
 
-        member _.GetById(id: ExampleId) =
-            async {
-                match aggregateById.TryFind(ExampleId.value id) with
-                | Some aggregate -> return Ok(Some aggregate)
-                | None -> return Ok None
-            }
+        member _.GetById(id: ExampleId) = async {
+            match aggregateById.TryFind(ExampleId.value id) with
+            | Some aggregate -> return Ok(Some aggregate)
+            | None -> return Ok None
+        }
 
 [<Fact>]
 let ``POST returns CreatedAtAction and GET returns Ok`` () =

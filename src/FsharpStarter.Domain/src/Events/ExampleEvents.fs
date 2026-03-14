@@ -8,13 +8,14 @@ type ExampleEventType = | ExampleCreated
 
 type ExampleEventData = { Name: string }
 
-type ExampleDomainEvent =
-    { EventId: Guid
-      AggregateId: ExampleId
-      Version: int
-      OccurredAt: DateTime
-      EventType: ExampleEventType
-      Data: ExampleEventData }
+type ExampleDomainEvent = {
+    EventId: Guid
+    AggregateId: ExampleId
+    Version: int
+    OccurredAt: DateTime
+    EventType: ExampleEventType
+    Data: ExampleEventData
+} with
 
     interface IDomainEvent with
         member this.EventId = this.EventId

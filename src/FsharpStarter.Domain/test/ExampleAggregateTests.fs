@@ -28,13 +28,16 @@ let ``FromHistory rehydrates aggregate state`` () =
     let id = ExampleId.New()
     let occurredAt = DateTime.Parse("2026-01-01T00:00:00Z")
 
-    let history =
-        [ { EventId = Guid.NewGuid()
+    let history = [
+        {
+            EventId = Guid.NewGuid()
             AggregateId = id
             Version = 1
             OccurredAt = occurredAt
             EventType = ExampleCreated
-            Data = { Name = "Rehydrated" } } ]
+            Data = { Name = "Rehydrated" }
+        }
+    ]
 
     let result = ExampleAggregate.FromHistory(history)
 

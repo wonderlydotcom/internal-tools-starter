@@ -68,6 +68,11 @@ After the stack has been initialized, the normal app repo deployment path is:
 scripts/deploy-app-from-tofu.sh
 ```
 
+Local prerequisites for cluster deploys:
+
+- `kubectl` configured for the shared GKE cluster
+- `gke-gcloud-auth-plugin` installed so `kubectl` can authenticate through the generated kubeconfig
+
 The script:
 
 - builds and pushes the app image to the per-app Artifact Registry repo

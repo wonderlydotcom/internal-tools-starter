@@ -101,8 +101,9 @@ When copying this repo for a new project:
 2. Update deploy/environment values (domain names, image names, cloud project IDs).
 3. Create your own `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example`.
 4. Point `infra/opentofu/backend.gcs.hcl.example` at the `state_bucket_name` from `../internal-tools-infra/platform/apps`.
-5. Use `scripts/deploy-app-from-tofu.sh` for image build, push, and rollout after the shared app contract exists.
-6. Run `scripts/template-sanity-check.sh` and fix anything it reports.
+5. Install `gke-gcloud-auth-plugin` before cluster deploys so `kubectl` can authenticate to GKE through kubeconfig.
+6. Use `scripts/deploy-app-from-tofu.sh` for image build, push, and rollout after the shared app contract exists.
+7. Run `scripts/template-sanity-check.sh` and fix anything it reports.
 If you also use the optional bootstrap stack in `infra/foundation/opentofu`, create its `terraform.tfvars` from the committed example before applying it.
 
 ## Template Guardrail Script

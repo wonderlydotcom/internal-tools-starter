@@ -63,7 +63,7 @@ resource "google_iam_workload_identity_pool" "github_actions" {
   workload_identity_pool_id = var.github_workload_identity_pool_id
   display_name              = var.github_workload_identity_pool_display_name
   description               = "Allows GitHub Actions OIDC identities to deploy FsharpStarter"
-  project                   = local.project_id
+  project                   = data.google_project.current.number
 
   depends_on = [google_project_service.required]
 }
@@ -73,7 +73,7 @@ resource "google_iam_workload_identity_pool_provider" "github_actions" {
   workload_identity_pool_provider_id = local.github_workload_identity_provider_id
   display_name                       = var.github_workload_identity_provider_display_name
   description                        = "GitHub Actions OIDC provider for FsharpStarter deploys"
-  project                            = local.project_id
+  project                            = data.google_project.current.number
 
   attribute_mapping = {
     "google.subject"             = "assertion.sub"

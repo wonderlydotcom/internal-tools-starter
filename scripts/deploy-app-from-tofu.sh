@@ -5,11 +5,12 @@ usage() {
   cat <<'EOF'
 Usage: scripts/deploy-app-from-tofu.sh [additional tofu apply args]
 
-Builds and pushes the application image, updates image_tag in infra/opentofu,
+Builds and pushes the application image, syncs image_tag into TFVARS_PATH when present,
 applies the app-owned OpenTofu stack, and waits for the StatefulSet rollout.
 
 Environment overrides:
   INFRA_DIR                    OpenTofu directory (default: infra/opentofu)
+  TFVARS_PATH                  terraform.tfvars path to keep image_tag in sync
   IMAGE_TAG                    Tag to build and deploy (default: git sha or timestamp)
   IMAGE_NAME                   Image name inside Artifact Registry
   GCP_PROJECT_ID               Shared GCP project ID
@@ -34,6 +35,35 @@ require_cmd() {
 
 log() {
   printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
+}
+
+sync_image_tag_tfvars() {
+  local tfvars_path="$1"
+
+  if [[ ! -f "${tfvars_path}" ]]; then
+    log "Skipping image_tag sync because ${tfvars_path} does not exist"
+    return 0
+  fi
+
+  local tmp_file
+  tmp_file="$(mktemp "${TMPDIR:-/tmp}/deploy-app-from-tofu.XXXXXX")"
+
+  if ! awk -v image_tag="${IMAGE_TAG}" '
+    BEGIN { updated = 0 }
+    /^image_tag[[:space:]]*=/ {
+      printf "image_tag                  = \"%s\"\n", image_tag
+      updated = 1
+      next
+    }
+    { print }
+    END { exit(updated ? 0 : 2) }
+  ' "${tfvars_path}" > "${tmp_file}"; then
+    rm -f "${tmp_file}"
+    echo "Failed to update image_tag in ${tfvars_path}" >&2
+    exit 1
+  fi
+
+  mv "${tmp_file}" "${tfvars_path}"
 }
 
 read_output() {
@@ -69,6 +99,7 @@ for cmd in docker gcloud jq kubectl tofu; do
 done
 
 INFRA_DIR="${INFRA_DIR:-infra/opentofu}"
+TFVARS_PATH="${TFVARS_PATH:-${INFRA_DIR}/terraform.tfvars}"
 ROLLOUT_TIMEOUT="${ROLLOUT_TIMEOUT:-5m}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-linux/amd64}"
 PUBLISH_LATEST="${PUBLISH_LATEST:-false}"
@@ -117,9 +148,12 @@ fi
 
 log "Applying OpenTofu with image_tag=${IMAGE_TAG}"
 tofu -chdir="${INFRA_DIR}" apply -auto-approve \
+  "${TOFU_APPLY_ARGS[@]}" \
   -var "image_name=${IMAGE_NAME}" \
-  -var "image_tag=${IMAGE_TAG}" \
-  "${TOFU_APPLY_ARGS[@]}"
+  -var "image_tag=${IMAGE_TAG}"
+
+log "Syncing ${TFVARS_PATH} to image_tag=${IMAGE_TAG}"
+sync_image_tag_tfvars "${TFVARS_PATH}"
 
 OUTPUT_JSON="$(tofu -chdir="${INFRA_DIR}" output -json)"
 NAMESPACE="$(resolve_value APP_NAMESPACE namespace "app namespace")"

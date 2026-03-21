@@ -3,6 +3,7 @@
 Reusable implementation guides for optional capabilities in this template.
 
 ## Skills
+- `add-secret`: End-to-end runtime secret delivery across app repo, shared infra repo, backend startup, and deploy/runtime verification.
 - `iap-auth`: Google Cloud IAP authn/authz integration and local dev fallback.
 - `gcp-deploy`: GCE deployment summary from `docker-compose.gce.yml` and `infra/opentofu`.
 - `openfga`: Relationship-based authorization with OpenFGA and architecture placement.

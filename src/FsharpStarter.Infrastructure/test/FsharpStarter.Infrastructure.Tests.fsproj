@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="ExampleRepositoryTests.fs" />
     <Compile Include="ExamplesControllerTests.fs" />
+    <Compile Include="ExampleMcpToolsTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
@@ -27,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../FsharpStarter.Infrastructure.fsproj" />
+    <ProjectReference Include="../../FsharpStarter.McpServer/FsharpStarter.McpServer.fsproj" />
     <ProjectReference Include="../../FsharpStarter.Domain/FsharpStarter.Domain.fsproj" />
     <ProjectReference Include="../../FsharpStarter.Application/FsharpStarter.Application.fsproj" />
     <ProjectReference Include="../../FsharpStarter.Api/FsharpStarter.Api.fsproj" />

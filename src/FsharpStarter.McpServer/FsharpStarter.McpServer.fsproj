@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="ModelContextProtocol" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../FsharpStarter.Application/FsharpStarter.Application.fsproj" />
+    <ProjectReference Include="../FsharpStarter.Infrastructure/FsharpStarter.Infrastructure.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="src/Tools/ExampleMcpTools.fs" />
+    <Compile Include="src/Program.fs" />
+  </ItemGroup>
+
+</Project>

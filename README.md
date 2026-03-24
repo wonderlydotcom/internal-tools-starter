@@ -15,6 +15,7 @@ It is not an "anything goes" scaffold.
 - Event-sourced domain aggregate + persisted domain events
 - EF Core + SQLite repository implementation with DBUp-managed SQL migrations
 - Test projects wired into the solution
+- Optional stdio MCP server host using the official .NET SDK
 - Frontend checks/tests and reusable UI components
 - Optional AI skills in `.agents/skills` for common advanced workflows
 
@@ -24,6 +25,7 @@ It is not an "anything goes" scaffold.
 - `src/FsharpStarter.Application`
 - `src/FsharpStarter.Infrastructure`
 - `src/FsharpStarter.Api`
+- `src/FsharpStarter.McpServer`
 
 ## Architecture
 
@@ -39,6 +41,7 @@ API -> Domain
 - `src/FsharpStarter.Api`: one canonical `ExamplesController` with:
   - `GET /api/examples/{id}`
   - `POST /api/examples`
+- `src/FsharpStarter.McpServer`: optional stdio MCP host built on the official .NET SDK with starter tools that call the same application layer
 
 ## Layer Rules
 - Domain: pure business logic, no framework/network/database dependencies.
@@ -72,6 +75,37 @@ dotnet build FsharpStarter.sln -c Release
 dotnet run --project src/FsharpStarter.Api/FsharpStarter.Api.fsproj
 ```
 
+## Optional MCP Server
+If a copied repo needs MCP support, the starter includes `src/FsharpStarter.McpServer` as a separate stdio host using the official `ModelContextProtocol` .NET SDK.
+
+Build it first so your MCP client does not see `dotnet run` build output on stdout:
+
+```bash
+dotnet build src/FsharpStarter.McpServer/FsharpStarter.McpServer.fsproj -c Release
+ConnectionStrings__DefaultConnection="Data Source=/absolute/path/to/app.db" \
+  dotnet src/FsharpStarter.McpServer/bin/Release/net10.0/FsharpStarter.McpServer.dll
+```
+
+Example Claude Desktop-style config:
+
+```json
+{
+  "mcpServers": {
+    "fsharp-starter": {
+      "command": "dotnet",
+      "args": [
+        "/ABSOLUTE/PATH/TO/FsharpStarter.McpServer.dll"
+      ],
+      "env": {
+        "ConnectionStrings__DefaultConnection": "Data Source=/ABSOLUTE/PATH/TO/app.db"
+      }
+    }
+  }
+}
+```
+
+The shipped tools expose the starter `ExampleHandler` so downstream repos have a concrete pattern to replace with domain-specific MCP tools.
+
 ## Core Commands
 ```bash
 dotnet restore FsharpStarter.sln
@@ -92,7 +126,7 @@ After each meaningful change:
 2. `dotnet build FsharpStarter.sln -c Release`
 3. `dotnet test FsharpStarter.sln`
 4. `cd www && npm run check && npm run lint && npm test`
-5. Run `review-backend` skill on backend changes (`src/FsharpStarter.Domain`, `src/FsharpStarter.Application`, `src/FsharpStarter.Infrastructure`, `src/FsharpStarter.Api`).
+5. Run `review-backend` skill on backend changes (`src/FsharpStarter.Domain`, `src/FsharpStarter.Application`, `src/FsharpStarter.Infrastructure`, `src/FsharpStarter.Api`, `src/FsharpStarter.McpServer`).
 6. Run `review-frontend` skill on frontend changes (`www/`).
 
 ## Template Reuse Checklist

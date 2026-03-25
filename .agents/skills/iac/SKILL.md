@@ -11,6 +11,14 @@ Apply the shared-cluster pattern used by `../internal-tools-infra`.
 
 This repo is the app-side companion, not the platform owner. `infra/opentofu` should deploy only app-owned resources into the namespace and storage contract created by the shared platform.
 
+## Tfvars Boundary
+
+Treat `infra/opentofu/terraform.tfvars` as an intentionally committed app-stack input:
+- commit only non-secret values such as project IDs, regions, hostnames, namespaces, Artifact Registry repo names, queue names, and mounted secret file paths or other identifiers
+- never commit API tokens, passwords, private keys, PEM blocks, service account JSON, or other long-lived credentials
+- route secret payloads through GCP Secret Manager and the platform-managed secret delivery path instead of placing them directly in tfvars
+- keep `backend.hcl`, any `.tfstate` file, `.terraform/`, and scratch restore artifacts uncommitted
+
 ## Workflow
 
 1. Inspect `infra/opentofu/main.tf`, `infra/opentofu/variables.tf`, `infra/opentofu/outputs.tf`, and `infra/opentofu/README.md`.

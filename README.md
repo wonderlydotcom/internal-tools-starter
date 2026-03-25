@@ -133,7 +133,7 @@ After each meaningful change:
 When copying this repo for a new project:
 1. Pick your project name and replace `FsharpStarter` / `fsharp-starter` tokens.
 2. Update deploy/environment values (domain names, image names, cloud project IDs).
-3. Create your own `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example`.
+3. Update the committed `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example` and keep only non-secret values there.
 4. Point `infra/opentofu/backend.gcs.hcl.example` at the `state_bucket_name` from `../internal-tools-infra/platform/apps`.
 5. Install `gke-gcloud-auth-plugin` before cluster deploys so `kubectl` can authenticate to GKE through kubeconfig.
 6. Use `scripts/deploy-app-from-tofu.sh` for image build, push, and rollout after the shared app contract exists.
@@ -147,4 +147,4 @@ scripts/template-sanity-check.sh
 
 This script fails if it finds:
 - Legacy copied-project markers
-- Local deploy/state artifacts that should not be part of the template (`terraform.tfstate*`, `terraform.tfvars`, `backend.hcl`, `www/dist`)
+- Local deploy/state artifacts that should not be part of the template (`terraform.tfstate*`, `backend.hcl`, `www/dist`)

@@ -17,7 +17,7 @@ Get the contract for your app from the shared infra repo:
 tofu -chdir=../internal-tools-infra/platform/apps output -json app_contracts
 ```
 
-Copy the entry for your app into `platform_contract` in `terraform.tfvars`.
+Keep the committed, non-secret `infra/opentofu/terraform.tfvars` up to date and copy the entry for your app into `platform_contract`.
 
 The values that matter here are:
 

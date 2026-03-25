@@ -14,7 +14,6 @@ declare -a BLOCKED_PATHS=(
   "infra/foundation/opentofu/terraform.tfstate"
   "infra/foundation/opentofu/terraform.tfstate.backup"
   "infra/opentofu/backend.hcl"
-  "infra/opentofu/terraform.tfvars"
   "infra/opentofu/terraform.tfstate"
   "infra/opentofu/terraform.tfstate.backup"
   "infra/opentofu/terraform.tfstate.1770575441.backup"

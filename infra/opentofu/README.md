@@ -76,7 +76,6 @@ Local prerequisites for cluster deploys:
 The script:
 
 - builds and pushes the app image to the per-app Artifact Registry repo
-- syncs `TFVARS_PATH` to the selected immutable `image_tag` when that file exists
 - applies `infra/opentofu` with the selected `image_tag`
 - waits for the `StatefulSet` rollout in the platform-created namespace
 
@@ -85,14 +84,16 @@ Useful overrides:
 ```bash
 IMAGE_TAG=$(git rev-parse --short HEAD) scripts/deploy-app-from-tofu.sh
 PUBLISH_LATEST=true scripts/deploy-app-from-tofu.sh
-TFVARS_PATH=infra/opentofu/environments/dev/terraform.tfvars.example scripts/deploy-app-from-tofu.sh -var-file=environments/dev/terraform.tfvars.example
+scripts/deploy-app-from-tofu.sh -var-file=environments/dev/terraform.tfvars.example
 ```
+
+The selected `image_tag` is passed to OpenTofu at apply time and is not written back into `terraform.tfvars`.
 
 ## App-Owned Changes
 
 In app repos, the normal changes are:
 
-- update `image_tag` to roll out a new container image
+- deploy a new container image by setting `IMAGE_TAG` or using the default git-sha tag; no `terraform.tfvars` edit is required
 - add or change `app_config` keys for non-secret runtime config
 - copy refreshed contract values after shared-platform changes
 

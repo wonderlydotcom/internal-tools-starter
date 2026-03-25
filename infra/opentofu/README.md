@@ -33,6 +33,16 @@ The values that matter here are:
 - `iap_jwt_audience`
 - `required_pod_labels`
 
+## Artifact Registry Retention
+
+The shared platform owns the Artifact Registry repository referenced by `platform_contract.artifact_registry_repo`.
+
+App repos should not define their own cleanup policies in this stack. The intended operating model is:
+
+- build and push images from the app repo
+- let `internal-tools-infra` create and manage the repository lifecycle policy
+- verify during onboarding that the shared repo keeps only the latest 20 image versions
+
 ## Backend
 
 The shared platform creates a per-app GCS bucket for this repo's state. Populate [`backend.gcs.hcl.example`](./backend.gcs.hcl.example) with `state_bucket_name`, then initialize with:

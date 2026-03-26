@@ -1,16 +1,10 @@
 # FsharpStarter Agent Skills
 
-Reusable implementation guides for optional capabilities in this template.
+Shared internal-tools skills are now served by the deployed `internal-tools-mcp` server configured in [`.codex/config.toml`](../.codex/config.toml) and [`.mcp.json`](../.mcp.json).
 
-## Skills
-- `add-secret`: End-to-end runtime secret delivery across app repo, shared infra repo, backend startup, and deploy/runtime verification.
-- `iap-auth`: Google Cloud IAP authn/authz integration and local dev fallback.
-- `gcp-deploy`: GCE deployment summary from `docker-compose.gce.yml` and `infra/opentofu`.
-- `openfga`: Relationship-based authorization with OpenFGA and architecture placement.
-- `entity-framework-fsharp`: EF Core + SQLite patterns for F# records, DU/option/result conversion.
-- `new-controller`: End-to-end controller workflow from domain change to API endpoint.
-- `event-sourcing-audit`: Transactional event persistence and audit display integration.
-- `otel-tracing`: AutoTracing + OpenTelemetry wiring for handlers/controllers.
+## Local Skills
+
+- `deploy-github-actions`: repo-specific GitHub Actions deployment guidance
 
 ## Standard Verification Loop
 After each significant change:

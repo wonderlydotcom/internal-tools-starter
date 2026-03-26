@@ -49,24 +49,15 @@ API -> Domain
 - Infrastructure: EF Core, SQLite, external integrations.
 - API: controllers, middleware, DI composition.
 
-## Skills
-Optional capabilities are documented under `.agents/skills`:
-- `db-migrations`
-- `entity-framework-fsharp`
-- `iac`
-- `new-controller`
-- `event-sourcing-audit`
-- `otel-tracing`
-- `fsharp-debugger`
-- `iap-auth`
-- `openfga`
-- `opentofu`
-- `deploy-github-actions`
-- `gcp-deploy`
-- `review-backend`
-- `review-frontend`
+## Shared MCP Skills
 
-Use skills for advanced/optional features so template docs stay minimal.
+Shared internal-tools skills are now served by the deployed `internal-tools-mcp` server.
+
+- Codex reads [`.codex/config.toml`](./.codex/config.toml).
+- Claude Code reads [`.mcp.json`](./.mcp.json) and [`.claude/settings.json`](./.claude/settings.json).
+- Set `INTERNAL_TOOLS_MCP_BEARER_TOKEN` before starting either client.
+- Keep `deploy-github-actions` as the repo-local template skill.
+- Treat the remaining shared folders under `.agents/skills` as transitional duplicates until the deletion wave.
 
 ## Quick Start
 ```bash
@@ -126,8 +117,8 @@ After each meaningful change:
 2. `dotnet build FsharpStarter.sln -c Release`
 3. `dotnet test FsharpStarter.sln`
 4. `cd www && npm run check && npm run lint && npm test`
-5. Run `review-backend` skill on backend changes (`src/FsharpStarter.Domain`, `src/FsharpStarter.Application`, `src/FsharpStarter.Infrastructure`, `src/FsharpStarter.Api`, `src/FsharpStarter.McpServer`).
-6. Run `review-frontend` skill on frontend changes (`www/`).
+5. Run the shared `review-backend` skill from the `internal-tools` MCP server on backend changes (`src/FsharpStarter.Domain`, `src/FsharpStarter.Application`, `src/FsharpStarter.Infrastructure`, `src/FsharpStarter.Api`, `src/FsharpStarter.McpServer`).
+6. Run the shared `review-frontend` skill from the `internal-tools` MCP server on frontend changes (`www/`).
 
 ## Template Reuse Checklist
 When copying this repo for a new project:
@@ -138,7 +129,8 @@ When copying this repo for a new project:
 5. Install `gke-gcloud-auth-plugin` before cluster deploys so `kubectl` can authenticate to GKE through kubeconfig.
 6. Use `scripts/deploy-app-from-tofu.sh` for image build, push, and rollout after the shared app contract exists.
 7. Confirm the shared platform owns your `artifact_registry_repo` lifecycle and enforces the standard cleanup policy for that repo.
-8. Run `scripts/template-sanity-check.sh` and fix anything it reports.
+8. Keep the committed MCP wiring and only use local `.agents/skills` for repo-specific capabilities.
+9. Run `scripts/template-sanity-check.sh` and fix anything it reports.
 If you also use the optional bootstrap stack in `infra/foundation/opentofu`, create its `terraform.tfvars` from the committed example before applying it.
 
 ## Template Guardrail Script

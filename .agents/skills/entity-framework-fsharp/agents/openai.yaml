@@ -1,4 +1,0 @@
-interface:
-  display_name: "EF F# Persistence Guide"
-  short_description: "Apply EF Core + SQLite best practices for F# persistence and query translation"
-  default_prompt: "Review and implement end-to-end F# + EF Core + SQLite persistence best practices, including DBUp schema alignment, converter design, and provider-safe query patterns."

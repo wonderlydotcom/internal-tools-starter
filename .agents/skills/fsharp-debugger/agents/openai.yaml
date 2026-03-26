@@ -1,4 +1,0 @@
-interface:
-  display_name: "F# Debugger"
-  short_description: "Triage and fix common F# compiler diagnostics such as FS3511"
-  default_prompt: "Help debug F# compiler warnings/errors in this repo and apply safe targeted fixes."

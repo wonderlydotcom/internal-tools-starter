@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review Backend"
-  short_description: "Backend code review checklist for F#/.NET hexagonal architecture"
-  default_prompt: "Review recently generated backend code and enforce backend best practices before merge."

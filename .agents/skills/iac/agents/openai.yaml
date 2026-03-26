@@ -1,4 +1,0 @@
-interface:
-  display_name: "IaC"
-  short_description: "GCP OpenTofu blue-green and disk-safety guardrails"
-  default_prompt: "Apply product-neutral, cost-conscious GCP OpenTofu patterns for MIG + blue-green rollout, with strict checks that persistent data disks are never deleted during deploys."

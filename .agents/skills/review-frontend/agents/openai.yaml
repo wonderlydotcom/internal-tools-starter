@@ -1,4 +1,0 @@
-interface:
-  display_name: "Review Frontend"
-  short_description: "Frontend code review checklist for React/TypeScript app changes"
-  default_prompt: "Review recently generated frontend code and enforce frontend best practices before merge."

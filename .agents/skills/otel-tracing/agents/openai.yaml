@@ -1,4 +1,0 @@
-interface:
-  display_name: "OTEL Tracing"
-  short_description: "OpenTelemetry tracing coverage for handlers/controllers"
-  default_prompt: "Ensure new commands and controllers are correctly traced with consistent span naming and DI registration."

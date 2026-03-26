@@ -1,4 +1,0 @@
-interface:
-  display_name: "IAP Auth"
-  short_description: "Google Cloud IAP auth and identity provisioning pattern"
-  default_prompt: "Implement or review Google Cloud IAP authentication and identity provisioning with proper layer boundaries and DI wiring."

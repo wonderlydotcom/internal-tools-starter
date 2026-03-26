@@ -1,4 +1,0 @@
-interface:
-  display_name: "Event Sourcing Audit"
-  short_description: "Domain event and audit-log change checklist"
-  default_prompt: "Review and implement event/audit changes with backward-compatible payload handling and regression tests."

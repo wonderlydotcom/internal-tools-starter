@@ -27,6 +27,14 @@ for path in "${BLOCKED_PATHS[@]}"; do
   fi
 done
 
+EXTRA_LOCAL_SKILLS=$(find .agents/skills -mindepth 1 -maxdepth 1 -type d ! -name 'deploy-github-actions' -print 2>/dev/null | sort || true)
+
+if [ -n "$EXTRA_LOCAL_SKILLS" ]; then
+  echo "[FAIL] Shared local skill folders must not ship in the starter template:"
+  echo "$EXTRA_LOCAL_SKILLS"
+  FAIL=1
+fi
+
 LEGACY_MATCHES=$(rg -n "freetool|wonderly-idp-sso|wonderly\\.com" \
   --glob '!**/node_modules/**' \
   --glob '!**/bin/**' \

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Project Init"
-  short_description: "Initialize starter into a real SaaS project"
-  default_prompt: "Initialize this repository into a concrete internal-tooling B2B SaaS project. Ask 3-5 clarifying questions, create CURRENT_PLAN.md from scratch, start Domain-first with user approval before later layers, include an audit log controller phase using event-sourcing-audit guidance, enforce per-phase review/fix loops, and keep Example-reference removal as the last plan step."

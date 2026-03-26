@@ -1,4 +1,0 @@
-interface:
-  display_name: "Add Secret"
-  short_description: "Add secret-backed settings safely"
-  default_prompt: "Use $add-secret to add a new secret-backed setting across this repo, ../internal-tools-infra, and the deploy pipeline."

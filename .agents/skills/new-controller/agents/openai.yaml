@@ -1,4 +1,0 @@
-interface:
-  display_name: "New Controller"
-  short_description: "End-to-end endpoint workflow across hexagonal layers"
-  default_prompt: "Add a new endpoint flow across Domain, Application, Infrastructure, API, and frontend contract updates."

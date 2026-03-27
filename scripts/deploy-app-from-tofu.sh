@@ -22,6 +22,10 @@ Environment overrides:
 If this is the first deployment and tofu outputs do not exist yet, set
 GCP_PROJECT_ID, ARTIFACT_REGISTRY_LOCATION, and ARTIFACT_REGISTRY_REPO
 explicitly or run an initial tofu apply first.
+
+If KUBECONFIG is set and TF_VAR_kubeconfig_path is not, the script exports the
+first kubeconfig path into TF_VAR_kubeconfig_path so OpenTofu uses the same
+cluster credentials as kubectl.
 EOF
 }
 
@@ -34,6 +38,58 @@ require_cmd() {
 
 log() {
   printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*"
+}
+
+ensure_gke_auth_plugin() {
+  local kubeconfig_paths="${KUBECONFIG:-${HOME}/.kube/config}"
+  local kubeconfig_uses_plugin=false
+  local previous_ifs="${IFS}"
+  IFS=':'
+
+  for kubeconfig_path in ${kubeconfig_paths}; do
+    if [[ -f "${kubeconfig_path}" ]] && grep -q "gke-gcloud-auth-plugin" "${kubeconfig_path}"; then
+      kubeconfig_uses_plugin=true
+      break
+    fi
+  done
+
+  IFS="${previous_ifs}"
+
+  if [[ "${kubeconfig_uses_plugin}" != "true" ]]; then
+    return 0
+  fi
+
+  if command -v gke-gcloud-auth-plugin >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local sdk_root=""
+  sdk_root="$(gcloud info --format='value(installation.sdk_root)' 2>/dev/null || true)"
+
+  if [[ -n "${sdk_root}" && -x "${sdk_root}/bin/gke-gcloud-auth-plugin" ]]; then
+    export PATH="${sdk_root}/bin:${PATH}"
+  fi
+
+  if ! command -v gke-gcloud-auth-plugin >/dev/null 2>&1; then
+    echo "Missing required command: gke-gcloud-auth-plugin" >&2
+    echo "Install it or add the Google Cloud SDK bin directory to PATH before deploying." >&2
+    exit 1
+  fi
+}
+
+sync_tf_var_kubeconfig_path() {
+  if [[ -n "${TF_VAR_kubeconfig_path:-}" || -z "${KUBECONFIG:-}" ]]; then
+    return 0
+  fi
+
+  local kubeconfig_path="${KUBECONFIG%%:*}"
+
+  if [[ -z "${kubeconfig_path}" ]]; then
+    return 0
+  fi
+
+  export TF_VAR_kubeconfig_path="${kubeconfig_path}"
+  log "Using kubeconfig ${TF_VAR_kubeconfig_path} for OpenTofu"
 }
 
 read_output() {
@@ -67,6 +123,9 @@ fi
 for cmd in docker gcloud jq kubectl tofu; do
   require_cmd "${cmd}"
 done
+
+ensure_gke_auth_plugin
+sync_tf_var_kubeconfig_path
 
 INFRA_DIR="${INFRA_DIR:-infra/opentofu}"
 ROLLOUT_TIMEOUT="${ROLLOUT_TIMEOUT:-5m}"

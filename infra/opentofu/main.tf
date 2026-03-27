@@ -1,8 +1,6 @@
 locals {
-  secret_provider_class_name = (
-    try(var.platform_contract.secret_provider_class, null) != null &&
-    trimspace(try(var.platform_contract.secret_provider_class, "")) != ""
-  ) ? trimspace(try(var.platform_contract.secret_provider_class, "")) : null
+  secret_provider_class_value = try(trimspace(var.platform_contract.secret_provider_class), "")
+  secret_provider_class_name  = trimspace(local.secret_provider_class_value) != "" ? trimspace(local.secret_provider_class_value) : null
 
   image_ref = format(
     "%s-docker.pkg.dev/%s/%s/%s:%s",

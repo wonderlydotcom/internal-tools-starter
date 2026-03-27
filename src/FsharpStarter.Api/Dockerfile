@@ -16,6 +16,7 @@ COPY ./src/FsharpStarter.Domain/FsharpStarter.Domain.fsproj ./src/FsharpStarter.
 COPY ./src/FsharpStarter.Application/FsharpStarter.Application.fsproj ./src/FsharpStarter.Application/
 COPY ./src/FsharpStarter.Infrastructure/FsharpStarter.Infrastructure.fsproj ./src/FsharpStarter.Infrastructure/
 COPY ./src/FsharpStarter.Api/FsharpStarter.Api.fsproj ./src/FsharpStarter.Api/
+COPY ./src/FsharpStarter.McpServer/FsharpStarter.McpServer.fsproj ./src/FsharpStarter.McpServer/
 COPY ./src/FsharpStarter.Domain/test/FsharpStarter.Domain.Tests.fsproj ./src/FsharpStarter.Domain/test/
 COPY ./src/FsharpStarter.Application/test/FsharpStarter.Application.Tests.fsproj ./src/FsharpStarter.Application/test/
 RUN dotnet restore

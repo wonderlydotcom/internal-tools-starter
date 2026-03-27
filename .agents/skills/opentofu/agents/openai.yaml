@@ -1,4 +1,0 @@
-interface:
-  display_name: "OpenTofu State Ops"
-  short_description: "GCS-backed OpenTofu state round-trip workflow"
-  default_prompt: "Use $opentofu to pull the live GCS-backed OpenTofu state into a safe local workflow, reconstruct local tfvars, and then restore or promote the final state back to the bucket."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "OpenFGA"
-  short_description: "Relationship-based authorization integration guide"
-  default_prompt: "Implement or update OpenFGA-backed authorization while preserving domain purity and fallback DI configuration."

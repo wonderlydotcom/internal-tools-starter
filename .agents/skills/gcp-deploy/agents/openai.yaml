@@ -1,4 +1,0 @@
-interface:
-  display_name: "GCP Deploy"
-  short_description: "Deploy FsharpStarter to GCE with Compose and OpenTofu"
-  default_prompt: "Guide deployment changes for GCE, OpenTofu, and docker-compose with hardened infra and script checks."

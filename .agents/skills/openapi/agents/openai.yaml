@@ -1,4 +1,0 @@
-interface:
-  display_name: "OpenAPI Refresh"
-  short_description: "Regenerate openapi.spec.json and frontend types from local API"
-  default_prompt: "Refresh OpenAPI from localhost, regenerate TypeScript types, and troubleshoot common local failures."

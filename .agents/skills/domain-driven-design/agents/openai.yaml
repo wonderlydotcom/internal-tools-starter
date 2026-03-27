@@ -1,4 +1,0 @@
-interface:
-  display_name: "Domain-Driven Design (F#)"
-  short_description: "F# DDD patterns: types, invariants, events, and Result flows"
-  default_prompt: "Model this feature using F# DDD: opaque types, domain invariants, explicit errors, events, repository boundaries, and atomic persistence."

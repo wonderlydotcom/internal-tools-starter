@@ -16,7 +16,7 @@ It is not an "anything goes" scaffold.
 - EF Core + SQLite repository implementation
 - Test projects wired into the solution
 - Frontend checks/tests and reusable UI components
-- Optional AI skills in `.agents/skills` for common advanced workflows
+- Optional AI workflows via the shared `internal-tools` MCP server plus repo-local template skills when needed
 
 ## Solution
 - `FsharpStarter.sln`
@@ -53,8 +53,8 @@ Shared internal-tools skills are now served by the deployed `internal-tools-mcp`
 - Codex reads [`.codex/config.toml`](./.codex/config.toml).
 - Claude Code reads [`.mcp.json`](./.mcp.json) and [`.claude/settings.json`](./.claude/settings.json).
 - Set `INTERNAL_TOOLS_MCP_BEARER_TOKEN` before starting either client.
-- Keep `deploy-github-actions` as the repo-local template skill.
-- Treat the remaining shared folders under `.agents/skills` as transitional duplicates until the deletion wave.
+- Keep only `deploy-github-actions` as the repo-local template skill.
+- `scripts/template-sanity-check.sh` fails if shared local skills are reintroduced.
 
 ## Quick Start
 ```bash

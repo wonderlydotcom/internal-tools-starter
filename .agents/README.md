@@ -6,6 +6,8 @@ Shared internal-tools skills are now served by the deployed `internal-tools-mcp`
 
 - `deploy-github-actions`: repo-specific GitHub Actions deployment guidance
 
+The starter should not keep shared local skills. They must come from the `internal-tools` MCP server instead.
+
 ## Standard Verification Loop
 After each significant change:
 1. `dotnet tool run fantomas .`

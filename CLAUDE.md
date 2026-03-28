@@ -52,7 +52,7 @@ Shared internal-tools skills are now served by the deployed `internal-tools-mcp`
 
 - Codex reads [`.codex/config.toml`](./.codex/config.toml).
 - Claude Code reads [`.mcp.json`](./.mcp.json) and [`.claude/settings.json`](./.claude/settings.json).
-- Set `INTERNAL_TOOLS_MCP_BEARER_TOKEN` before starting either client.
+- No bearer token or local secret bootstrap is required before starting either client.
 - Keep only `deploy-github-actions` as the repo-local template skill.
 - `scripts/template-sanity-check.sh` fails if shared local skills are reintroduced.
 

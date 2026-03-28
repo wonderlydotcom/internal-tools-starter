@@ -35,6 +35,12 @@ if [ -n "$EXTRA_LOCAL_SKILLS" ]; then
   FAIL=1
 fi
 
+if rg -n 'INTERNAL_TOOLS_MCP_BEARER_TOKEN|bearer_token_env_var|Authorization": "Bearer' \
+  .mcp.json .codex/config.toml README.md CLAUDE.md 2>/dev/null; then
+  echo "[FAIL] Starter MCP wiring should not require a bearer token."
+  FAIL=1
+fi
+
 LEGACY_MATCHES=$(rg -n "freetool|wonderly-idp-sso|wonderly\\.com" \
   --glob '!**/node_modules/**' \
   --glob '!**/bin/**' \

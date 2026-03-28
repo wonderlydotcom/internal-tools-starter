@@ -1,5 +1,5 @@
 variable "project_name" {
-  description = "Human-readable project name. Used to derive kebab-case defaults such as bucket and repo names."
+  description = "Human-readable project name. Used to derive kebab-case defaults such as bucket, provider, and service-account names."
   type        = string
 
   validation {
@@ -15,45 +15,39 @@ variable "state_bucket_name" {
 }
 
 variable "state_bucket_storage_class" {
-  description = "Storage class for the OpenTofu state bucket"
+  description = "Storage class for the OpenTofu state bucket."
   type        = string
   default     = "STANDARD"
 }
 
 variable "state_bucket_force_destroy" {
-  description = "Whether the foundation stack may destroy the state bucket"
+  description = "Whether the foundation stack may destroy the state bucket."
   type        = bool
   default     = false
 }
 
 variable "github_repository_owner" {
-  description = "GitHub organization or user that owns the repository allowed to deploy"
+  description = "GitHub organization or user that owns the repository allowed to deploy."
   type        = string
-  default     = "wonderly"
+  default     = "wonderlydotcom"
 }
 
 variable "github_repository_name" {
-  description = "Optional override for the GitHub repository name allowed to deploy. Defaults to internal-tools-<project-name>."
+  description = "Optional override for the GitHub repository name allowed to deploy. Defaults to internal-tool-<project-name>."
   type        = string
   default     = ""
 }
 
 variable "github_deploy_branch" {
-  description = "Git branch or full ref allowed to deploy via GitHub Actions"
+  description = "Git branch or full ref allowed to deploy via GitHub Actions."
   type        = string
   default     = "main"
 }
 
 variable "github_workload_identity_pool_id" {
-  description = "Workload Identity Pool ID used for GitHub Actions"
+  description = "Existing shared Workload Identity Pool ID used for GitHub Actions."
   type        = string
   default     = "github-actions"
-}
-
-variable "github_workload_identity_pool_display_name" {
-  description = "Display name for the GitHub Actions Workload Identity Pool"
-  type        = string
-  default     = "GitHub Actions"
 }
 
 variable "github_workload_identity_provider_id" {
@@ -63,9 +57,9 @@ variable "github_workload_identity_provider_id" {
 }
 
 variable "github_workload_identity_provider_display_name" {
-  description = "Display name for the GitHub Actions Workload Identity Provider"
+  description = "Display name for the Workload Identity Provider used by this repo."
   type        = string
-  default     = "FsharpStarter GitHub Provider"
+  default     = "FsharpStarter"
 }
 
 variable "deploy_service_account_id" {

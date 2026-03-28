@@ -1,2 +1,2 @@
-bucket = "iac-state-your-project-name"
-prefix = "your-project-name/foundation"
+bucket = "iac-state-my-internal-tool"
+prefix = "my-internal-tool/foundation"

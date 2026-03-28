@@ -131,7 +131,7 @@ When copying this repo for a new project:
 7. Confirm the shared platform owns your `artifact_registry_repo` lifecycle and enforces the standard cleanup policy for that repo.
 8. Keep the committed MCP wiring and only use local `.agents/skills` for repo-specific capabilities.
 9. Run `scripts/template-sanity-check.sh` and fix anything it reports.
-If you also use the optional bootstrap stack in `infra/foundation/opentofu`, create its `terraform.tfvars` from the committed example before applying it.
+If you also use the optional bootstrap stack in `infra/foundation/opentofu`, follow the bootstrap and backend-migration steps in `infra/foundation/opentofu/README.md`.
 
 ## Template Guardrail Script
 ```bash

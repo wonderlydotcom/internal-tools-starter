@@ -6,7 +6,7 @@ locals {
   github_repository_name = (
     trimspace(var.github_repository_name) != ""
     ? trimspace(var.github_repository_name)
-    : "internal-tools-${local.project_slug}"
+    : "internal-tool-${local.project_slug}"
   )
   github_repository = "${var.github_repository_owner}/${local.github_repository_name}"
   deploy_branch_ref = startswith(var.github_deploy_branch, "refs/") ? var.github_deploy_branch : "refs/heads/${var.github_deploy_branch}"
@@ -29,6 +29,7 @@ data "google_project" "current" {
 resource "google_project_service" "required" {
   for_each = toset([
     "artifactregistry.googleapis.com",
+    "container.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "storage.googleapis.com",
@@ -59,20 +60,11 @@ resource "google_storage_bucket" "terraform_state" {
   depends_on = [google_project_service.required]
 }
 
-resource "google_iam_workload_identity_pool" "github_actions" {
-  workload_identity_pool_id = var.github_workload_identity_pool_id
-  display_name              = var.github_workload_identity_pool_display_name
-  description               = "Allows GitHub Actions OIDC identities to deploy FsharpStarter"
-  project                   = data.google_project.current.number
-
-  depends_on = [google_project_service.required]
-}
-
 resource "google_iam_workload_identity_pool_provider" "github_actions" {
-  workload_identity_pool_id          = google_iam_workload_identity_pool.github_actions.workload_identity_pool_id
+  workload_identity_pool_id          = var.github_workload_identity_pool_id
   workload_identity_pool_provider_id = local.github_workload_identity_provider_id
   display_name                       = var.github_workload_identity_provider_display_name
-  description                        = "GitHub Actions OIDC provider for FsharpStarter deploys"
+  description                        = "GitHub Actions OIDC provider for ${var.project_name} deploys"
   project                            = data.google_project.current.number
 
   attribute_mapping = {
@@ -93,14 +85,14 @@ resource "google_iam_workload_identity_pool_provider" "github_actions" {
 
 resource "google_service_account" "deploy" {
   account_id   = local.deploy_service_account_id
-  display_name = "FsharpStarter Deploy"
+  display_name = "${var.project_name} Deploy"
   project      = local.project_id
 }
 
 resource "google_service_account_iam_member" "deploy_workload_identity_user" {
   service_account_id = google_service_account.deploy.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/projects/${data.google_project.current.number}/locations/global/workloadIdentityPools/${google_iam_workload_identity_pool.github_actions.workload_identity_pool_id}/attribute.repository/${local.github_repository}"
+  member             = "principalSet://iam.googleapis.com/projects/${data.google_project.current.number}/locations/global/workloadIdentityPools/${var.github_workload_identity_pool_id}/attribute.repository/${local.github_repository}"
 }
 
 resource "google_project_iam_member" "deploy_roles" {

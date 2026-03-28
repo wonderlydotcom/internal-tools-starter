@@ -2,6 +2,9 @@ project_name = "My Internal Tool"
 
 # Optional overrides:
 # state_bucket_name = "iac-state-my-internal-tool"
-# github_repository_owner = "wonderly"
-# github_repository_name  = "internal-tools-my-internal-tool"
-# github_deploy_branch    = "main"
+# github_repository_owner = "wonderlydotcom"
+# github_repository_name = "internal-tool-my-internal-tool"
+# github_deploy_branch = "main"
+# github_workload_identity_provider_id = "my-internal-tool"
+# github_workload_identity_provider_display_name = "My Internal Tool"
+# deploy_service_account_id = "my-internal-tool-deploy"

@@ -48,12 +48,19 @@ API -> Domain
 
 ## Shared MCP Skills
 
-Shared internal-tools skills are now served by the deployed `internal-tools-mcp` server.
+Shared internal-tools skills are served by the deployed `internal-tools-mcp` server.
 
 - Codex reads [`.codex/config.toml`](./.codex/config.toml).
 - Claude Code reads [`.mcp.json`](./.mcp.json) and [`.claude/settings.json`](./.claude/settings.json).
 - No bearer token or local secret bootstrap is required before starting either client.
-- Keep only `deploy-github-actions` as the repo-local template skill.
+- Shared internal-tools workflows are now surfaced locally as thin `.agents/skills/*/SKILL.md` stubs that delegate to `internal-tools.use_workflow`.
+- If the right shared workflow is not obvious, call `internal-tools.recommend_workflows` first, then call `internal-tools.use_workflow` for the top match before editing.
+- Before editing controllers or endpoints, load `new-controller` first.
+- Before editing EF Core mappings, repositories, or `DbContext` code, load `entity-framework-fsharp` first.
+- Before editing schema or migration code, load `db-migrations` first.
+- Consult the matching shared stub before infra, deploy, secret, OpenAPI, or review work when the task clearly maps to one of those workflows.
+- After loading a primary workflow, also consult related shared stubs such as `domain-driven-design`, `event-sourcing-audit`, and `otel-tracing` when they exist in this repo and the task touches business rules, audit/events, or new request paths.
+- Keep `deploy-github-actions` as the full repo-local template skill until the shared MCP version is promoted.
 
 ## Quick Start
 ```bash
@@ -92,5 +99,5 @@ When copying this repo for a new project:
 3. Update the committed `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example` and keep only non-secret values there.
 4. Point `infra/opentofu/backend.gcs.hcl.example` at the `state_bucket_name` from `../internal-tools-infra/platform/apps`.
 5. Use `scripts/deploy-app-from-tofu.sh` for image build, push, and rollout after the shared app contract exists.
-6. Keep the committed MCP wiring and only use local `.agents/skills` for repo-specific capabilities.
+6. Keep the committed MCP wiring. Shared `.agents/skills` stubs are expected alongside repo-specific full local skills.
 If you also use the optional bootstrap stack in `infra/foundation/opentofu`, follow the bootstrap and backend-migration steps in `infra/foundation/opentofu/README.md`.

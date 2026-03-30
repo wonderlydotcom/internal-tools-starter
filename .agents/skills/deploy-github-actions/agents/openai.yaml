@@ -1,4 +1,0 @@
-interface:
-  display_name: "Deploy GitHub Actions"
-  short_description: "Create repo deploy workflows for GCP merges"
-  default_prompt: "Use $deploy-github-actions to add or update the GitHub Actions deploy workflow for this repo."

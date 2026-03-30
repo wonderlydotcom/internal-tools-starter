@@ -60,7 +60,6 @@ Shared internal-tools skills are served by the deployed `internal-tools-mcp` ser
 - Before editing schema or migration code, load `db-migrations` first.
 - Consult the matching shared stub before infra, deploy, secret, OpenAPI, or review work when the task clearly maps to one of those workflows.
 - After loading a primary workflow, also consult related shared stubs such as `domain-driven-design`, `event-sourcing-audit`, and `otel-tracing` when they exist in this repo and the task touches business rules, audit/events, or new request paths.
-- Keep `deploy-github-actions` as the full repo-local template skill until the shared MCP version is promoted.
 
 ## Quick Start
 ```bash

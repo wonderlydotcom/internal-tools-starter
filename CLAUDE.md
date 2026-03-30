@@ -54,7 +54,6 @@ Shared internal-tools skills are now served by the deployed `internal-tools-mcp`
 - Claude Code reads [`.mcp.json`](./.mcp.json) and [`.claude/settings.json`](./.claude/settings.json).
 - No bearer token or local secret bootstrap is required before starting either client.
 - Keep only `deploy-github-actions` as the repo-local template skill.
-- `scripts/template-sanity-check.sh` fails if shared local skills are reintroduced.
 
 ## Quick Start
 ```bash
@@ -94,14 +93,4 @@ When copying this repo for a new project:
 4. Point `infra/opentofu/backend.gcs.hcl.example` at the `state_bucket_name` from `../internal-tools-infra/platform/apps`.
 5. Use `scripts/deploy-app-from-tofu.sh` for image build, push, and rollout after the shared app contract exists.
 6. Keep the committed MCP wiring and only use local `.agents/skills` for repo-specific capabilities.
-7. Run `scripts/template-sanity-check.sh` and fix anything it reports.
 If you also use the optional bootstrap stack in `infra/foundation/opentofu`, follow the bootstrap and backend-migration steps in `infra/foundation/opentofu/README.md`.
-
-## Template Guardrail Script
-```bash
-scripts/template-sanity-check.sh
-```
-
-This script fails if it finds:
-- Legacy copied-project markers
-- Local deploy/state artifacts that should not be part of the template (`terraform.tfstate*`, `backend.hcl`, `www/dist`)

@@ -66,37 +66,6 @@ dotnet build FsharpStarter.sln -c Release
 dotnet run --project src/FsharpStarter.Api/FsharpStarter.Api.fsproj
 ```
 
-## Optional MCP Server
-If a copied repo needs MCP support, the starter includes `src/FsharpStarter.McpServer` as a separate stdio host using the official `ModelContextProtocol` .NET SDK.
-
-Build it first so your MCP client does not see `dotnet run` build output on stdout:
-
-```bash
-dotnet build src/FsharpStarter.McpServer/FsharpStarter.McpServer.fsproj -c Release
-ConnectionStrings__DefaultConnection="Data Source=/absolute/path/to/app.db" \
-  dotnet src/FsharpStarter.McpServer/bin/Release/net10.0/FsharpStarter.McpServer.dll
-```
-
-Example Claude Desktop-style config:
-
-```json
-{
-  "mcpServers": {
-    "fsharp-starter": {
-      "command": "dotnet",
-      "args": [
-        "/ABSOLUTE/PATH/TO/FsharpStarter.McpServer.dll"
-      ],
-      "env": {
-        "ConnectionStrings__DefaultConnection": "Data Source=/ABSOLUTE/PATH/TO/app.db"
-      }
-    }
-  }
-}
-```
-
-The shipped tools expose the starter `ExampleHandler` so downstream repos have a concrete pattern to replace with domain-specific MCP tools.
-
 ## Core Commands
 ```bash
 dotnet restore FsharpStarter.sln
@@ -111,14 +80,15 @@ npm run lint
 npm test
 ```
 
-## Change Validation
+## Workflow
 After each meaningful change:
-1. `dotnet tool run fantomas .`
-2. `dotnet build FsharpStarter.sln -c Release`
-3. `dotnet test FsharpStarter.sln`
-4. `cd www && npm run check && npm run lint && npm test`
-5. Run the shared `review-backend` skill from the `internal-tools` MCP server on backend changes (`src/FsharpStarter.Domain`, `src/FsharpStarter.Application`, `src/FsharpStarter.Infrastructure`, `src/FsharpStarter.Api`, `src/FsharpStarter.McpServer`).
-6. Run the shared `review-frontend` skill from the `internal-tools` MCP server on frontend changes (`www/`).
+1. Create a pull request
+2. Run the shared `review-backend` skill from the `internal-tools` MCP server on backend changes (`src/FsharpStarter.Domain`, `src/FsharpStarter.Application`, `src/FsharpStarter.Infrastructure`, `src/FsharpStarter.Api`, `src/FsharpStarter.McpServer`).
+3. Run the shared `review-frontend` skill from the `internal-tools` MCP server on frontend changes (`www/`).
+4. Run `./scripts/signoff-pr.sh` without any arguments - this script runs all validation needed
+5. Address any feedback from the script (usually some formatting fails or maybe lint rules)
+6. Re-run `./scripts/signoff-pr.sh`
+7. Squash merge the PR
 
 ## Template Reuse Checklist
 When copying this repo for a new project:

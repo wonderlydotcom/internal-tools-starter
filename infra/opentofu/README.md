@@ -66,7 +66,7 @@ The deployed workload is expected to:
 - mount the platform PVC
 - expose the platform-required pod labels
 - answer the platform health check path on port `8080`
-- mount the platform-managed `SecretProviderClass` when the contract declares one
+- mount the platform-managed `SecretProviderClass` named in the contract, including the hidden bootstrap file under `.internal-tools/bootstrap`
 
 The `platform-contract` ConfigMap is injected with `envFrom` exactly as the shared platform docs describe.
 

@@ -12,6 +12,7 @@
     <Compile Include="ExampleRepositoryTests.fs" />
     <Compile Include="ExamplesControllerTests.fs" />
     <Compile Include="ExampleMcpToolsTests.fs" />
+    <Compile Include="IapAuthMiddlewareTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

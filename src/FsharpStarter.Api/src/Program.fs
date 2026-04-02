@@ -1,6 +1,9 @@
 open System
 open System.Diagnostics
+open FsharpStarter.Api.Auth
+open FsharpStarter.Api.Middleware
 open Microsoft.AspNetCore.Builder
+open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
@@ -16,6 +19,13 @@ let main args =
     builder.Services.AddControllers() |> ignore
     builder.Services.AddEndpointsApiExplorer() |> ignore
     builder.Services.AddSwaggerGen() |> ignore
+    builder.Services.AddHttpClient() |> ignore
+
+    if
+        String.IsNullOrWhiteSpace(builder.Configuration["Auth:IAP:JwtAudience"])
+        && not (String.IsNullOrWhiteSpace(builder.Configuration["IAP_JWT_AUDIENCE"]))
+    then
+        builder.Configuration["Auth:IAP:JwtAudience"] <- builder.Configuration["IAP_JWT_AUDIENCE"]
 
     let connectionString =
         builder.Configuration.GetConnectionString("DefaultConnection")
@@ -44,10 +54,30 @@ let main args =
     if app.Environment.IsDevelopment() then
         app.UseSwagger() |> ignore
         app.UseSwaggerUI() |> ignore
+        app.UseMiddleware<DevAuthMiddleware>() |> ignore
+    else
+        app.UseMiddleware<IapAuthMiddleware>() |> ignore
 
     app.UseHttpsRedirection() |> ignore
     app.UseStaticFiles() |> ignore
     app.MapGet("/healthy", Func<string>(fun () -> "OK")) |> ignore
+
+    app.MapGet(
+        "/__api/me",
+        Func<HttpContext, IResult>(fun context ->
+            let requestUser = RequestUserContext.get context
+
+            Results.Json(
+                {|
+                    email = requestUser.Email
+                    name = requestUser.Name
+                    profile = requestUser.Profile
+                    authenticationSource = requestUser.AuthenticationSource
+                |}
+            ))
+    )
+    |> ignore
+
     app.MapControllers() |> ignore
     app.MapFallbackToFile("index.html") |> ignore
     app.Run()

@@ -259,7 +259,9 @@ type IapAuthMiddleware(next: RequestDelegate, logger: ILogger<IapAuthMiddleware>
                     match validatedPrincipalOption, jwtEmail with
                     | Some _, Some tokenEmail ->
                         match headerEmail with
-                        | Some currentHeaderEmail when not (tokenEmail.Equals(currentHeaderEmail, StringComparison.OrdinalIgnoreCase)) ->
+                        | Some currentHeaderEmail when
+                            not (tokenEmail.Equals(currentHeaderEmail, StringComparison.OrdinalIgnoreCase))
+                            ->
                             logger.LogWarning(
                                 "IAP JWT email claim mismatch. Header email: {HeaderEmail}, token email: {TokenEmail}",
                                 currentHeaderEmail,

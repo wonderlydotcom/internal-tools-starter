@@ -248,30 +248,47 @@ type IapAuthMiddleware(next: RequestDelegate, logger: ILogger<IapAuthMiddleware>
                     |> Option.ofObj
                     |> Option.defaultValue defaultPictureHeader
 
-                match extractHeader emailHeader context with
+                let headerEmail = extractHeader emailHeader context |> Option.map parseEmailValue
+
+                let jwtEmail =
+                    validatedPrincipalOption
+                    |> Option.bind findEmailClaim
+                    |> Option.map (fun value -> value.Trim().ToLowerInvariant())
+
+                let resolvedEmail =
+                    match validatedPrincipalOption, jwtEmail with
+                    | Some _, Some tokenEmail ->
+                        match headerEmail with
+                        | Some currentHeaderEmail when
+                            not (tokenEmail.Equals(currentHeaderEmail, StringComparison.OrdinalIgnoreCase))
+                            ->
+                            logger.LogWarning(
+                                "IAP JWT email claim mismatch. Header email: {HeaderEmail}, token email: {TokenEmail}",
+                                currentHeaderEmail,
+                                tokenEmail
+                            )
+                        | _ -> ()
+
+                        Some tokenEmail
+                    | Some _, None ->
+                        logger.LogWarning("Validated IAP JWT assertion did not include an email claim.")
+                        None
+                    | None, _ -> headerEmail
+
+                match resolvedEmail with
                 | None ->
                     context.Response.StatusCode <- StatusCodes.Status401Unauthorized
-                    do! context.Response.WriteAsync $"Unauthorized: Missing or invalid {emailHeader}"
-                | Some rawEmail ->
-                    let email = parseEmailValue rawEmail
 
-                    match validatedPrincipalOption |> Option.bind findEmailClaim with
-                    | Some tokenEmail when not (email.Equals(tokenEmail, StringComparison.OrdinalIgnoreCase)) ->
-                        logger.LogWarning(
-                            "IAP JWT email claim mismatch. Header email: {HeaderEmail}, token email: {TokenEmail}",
-                            email,
-                            tokenEmail
-                        )
+                    match validatedPrincipalOption with
+                    | Some _ -> do! context.Response.WriteAsync "Unauthorized: Invalid IAP JWT assertion"
+                    | None -> do! context.Response.WriteAsync $"Unauthorized: Missing or invalid {emailHeader}"
+                | Some email ->
+                    RequestUserContext.set context {
+                        Name = extractHeader nameHeader context
+                        Email = email
+                        Profile = extractHeader pictureHeader context
+                        AuthenticationSource = "iap"
+                    }
 
-                        context.Response.StatusCode <- StatusCodes.Status401Unauthorized
-                        do! context.Response.WriteAsync "Unauthorized: IAP identity mismatch"
-                    | _ ->
-                        RequestUserContext.set context {
-                            Name = extractHeader nameHeader context
-                            Email = email
-                            Profile = extractHeader pictureHeader context
-                            AuthenticationSource = "iap"
-                        }
-
-                        do! next.Invoke(context)
+                    do! next.Invoke(context)
     }

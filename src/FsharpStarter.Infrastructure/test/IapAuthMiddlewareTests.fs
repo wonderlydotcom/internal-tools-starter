@@ -206,7 +206,7 @@ let ``Invalid signature returns 401`` () = task {
 }
 
 [<Fact>]
-let ``Missing email header returns 401`` () = task {
+let ``Missing email header falls back to JWT email`` () = task {
     let validToken, jwksJson =
         createJwtTestMaterial "expected-audience" "test@wonderly.com"
 
@@ -224,13 +224,72 @@ let ``Missing email header returns 401`` () = task {
     context.RequestServices <- services
     addHeader context "X-Goog-Iap-Jwt-Assertion" validToken |> ignore
 
+    let mutable nextInvoked = false
+    let mutable requestUser = None
+
     let middleware =
-        IapAuthMiddleware(RequestDelegate(fun _ -> Task.CompletedTask), NullLogger<IapAuthMiddleware>.Instance)
+        IapAuthMiddleware(
+            RequestDelegate(fun ctx ->
+                nextInvoked <- true
+                requestUser <- RequestUserContext.tryGet ctx
+                ctx.Response.StatusCode <- 204
+                Task.CompletedTask),
+            NullLogger<IapAuthMiddleware>.Instance
+        )
 
     do! middleware.InvokeAsync(context)
 
-    Assert.Equal(401, context.Response.StatusCode)
-    Assert.Contains("X-Goog-Authenticated-User-Email", readResponseBody context)
+    Assert.True(nextInvoked)
+    Assert.Equal(204, context.Response.StatusCode)
+
+    match requestUser with
+    | None -> failwith "Expected request user context to be set"
+    | Some user -> Assert.Equal("test@wonderly.com", user.Email)
+}
+
+[<Fact>]
+let ``JWT email remains canonical when IAP email header differs`` () = task {
+    let validToken, jwksJson =
+        createJwtTestMaterial "expected-audience" "token-user@wonderly.com"
+
+    let context = createContext "/api/examples"
+
+    let services =
+        configureServices
+            [
+                "Auth:IAP:ValidateJwt", "true"
+                "Auth:IAP:JwtAudience", "expected-audience"
+                "Auth:IAP:JwtCertsUrl", "https://example.test/jwks"
+            ]
+            jwksJson
+
+    context.RequestServices <- services
+    addHeader context "X-Goog-Iap-Jwt-Assertion" validToken |> ignore
+
+    addHeader context "X-Goog-Authenticated-User-Email" "accounts.google.com:header-user@wonderly.com"
+    |> ignore
+
+    let mutable nextInvoked = false
+    let mutable requestUser = None
+
+    let middleware =
+        IapAuthMiddleware(
+            RequestDelegate(fun ctx ->
+                nextInvoked <- true
+                requestUser <- RequestUserContext.tryGet ctx
+                ctx.Response.StatusCode <- 204
+                Task.CompletedTask),
+            NullLogger<IapAuthMiddleware>.Instance
+        )
+
+    do! middleware.InvokeAsync(context)
+
+    Assert.True(nextInvoked)
+    Assert.Equal(204, context.Response.StatusCode)
+
+    match requestUser with
+    | None -> failwith "Expected request user context to be set"
+    | Some user -> Assert.Equal("token-user@wonderly.com", user.Email)
 }
 
 [<Fact>]

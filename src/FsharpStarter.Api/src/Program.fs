@@ -52,11 +52,17 @@ let main args =
     let app = builder.Build()
 
     if app.Environment.IsDevelopment() then
-        app.UseSwagger() |> ignore
-        app.UseSwaggerUI() |> ignore
         app.UseMiddleware<DevAuthMiddleware>() |> ignore
     else
         app.UseMiddleware<IapAuthMiddleware>() |> ignore
+
+    app.UseSwagger(fun options -> options.RouteTemplate <- "openapi/{documentName}.json")
+    |> ignore
+
+    app.UseSwaggerUI(fun options ->
+        options.RoutePrefix <- "openapi"
+        options.SwaggerEndpoint("/openapi/v1.json", "internal-tools-starter v1"))
+    |> ignore
 
     app.UseHttpsRedirection() |> ignore
     app.UseStaticFiles() |> ignore

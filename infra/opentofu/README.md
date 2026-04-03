@@ -22,6 +22,7 @@ Keep the committed, non-secret `infra/opentofu/terraform.tfvars` up to date and 
 The values that matter here are:
 
 - `namespace`
+- `domain_name`
 - `runtime_service_account`
 - `service_name`
 - `pvc_name`
@@ -32,6 +33,11 @@ The values that matter here are:
 - `state_bucket_name`
 - `iap_jwt_audience`
 - `required_pod_labels`
+
+`domain_name` is mutable platform contract data. If the shared platform changes
+the app's public hostname, copy the refreshed contract into this repo, but do
+not assume that implies a repo rename, a new `app_id`, or a foundation-stack
+deploy-service-account rename.
 
 ## Artifact Registry Retention
 

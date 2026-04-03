@@ -93,6 +93,7 @@ After each meaningful change:
 When copying this repo for a new project:
 1. Pick your project name and replace `FsharpStarter` / `fsharp-starter` tokens.
 2. Update deploy/environment values (domain names, image names, cloud project IDs).
+   `platform_contract.domain_name` is shared-platform routing data and may later change independently from the repo slug or foundation deploy identity.
 3. Update the committed `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example` and keep only non-secret values there.
 4. Point `infra/opentofu/backend.gcs.hcl.example` at the `state_bucket_name` from `../internal-tools-infra/platform/apps`.
 5. Install `gke-gcloud-auth-plugin` before cluster deploys so `kubectl` can authenticate to GKE through kubeconfig.

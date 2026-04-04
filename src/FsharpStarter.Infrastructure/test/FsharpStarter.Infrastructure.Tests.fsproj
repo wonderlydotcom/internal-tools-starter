@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="ExampleRepositoryTests.fs" />
     <Compile Include="ExamplesControllerTests.fs" />
+    <Compile Include="ControllerConventionsTests.fs" />
     <Compile Include="ExampleMcpToolsTests.fs" />
     <Compile Include="IapAuthMiddlewareTests.fs" />
   </ItemGroup>

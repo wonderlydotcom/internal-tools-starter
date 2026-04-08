@@ -28,7 +28,11 @@ let main args =
         builder.Configuration["Auth:IAP:JwtAudience"] <- builder.Configuration["IAP_JWT_AUDIENCE"]
 
     let connectionString =
-        builder.Configuration.GetConnectionString("DefaultConnection")
+        SqliteConnectionStrings.resolveConnectionString
+            (SqliteConnectionStrings.isRunningInContainer ())
+            builder.Environment.ContentRootPath
+            "fsharp-starter.db"
+            (builder.Configuration.GetConnectionString("DefaultConnection") |> Option.ofObj)
 
     Persistence.upgradeDatabase connectionString
 

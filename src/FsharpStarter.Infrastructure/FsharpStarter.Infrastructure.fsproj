@@ -18,6 +18,7 @@
   <ItemGroup>
     <Compile Include="src/Database/FsharpStarterDbContext.fs" />
     <Compile Include="src/Database/Repositories/ExampleRepository.fs" />
+    <Compile Include="src/Database/SqliteConnectionStrings.fs" />
     <Compile Include="src/Database/Persistence.fs" />
   </ItemGroup>
 

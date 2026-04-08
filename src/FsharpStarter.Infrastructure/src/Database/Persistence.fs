@@ -37,12 +37,22 @@ module Persistence =
             | ex -> failwithf "Failed to upgrade database: %s" ex.Message
 
     let addInfrastructure (services: IServiceCollection) (connectionString: string) =
-        services.AddDbContext<FsharpStarterDbContext>(fun options -> options.UseSqlite(connectionString) |> ignore)
+        let normalizedConnectionString =
+            SqliteConnectionStrings.ensureParentDirectoryExists connectionString
+
+        services.AddDbContext<FsharpStarterDbContext>(fun options ->
+            options.UseSqlite(normalizedConnectionString) |> ignore)
         |> ignore
 
         services.AddScoped<IExampleRepository, ExampleRepository>() |> ignore
         services
 
-    let upgradeDatabase (connectionString: string) = performUpgrade connectionString true
+    let upgradeDatabase (connectionString: string) =
+        connectionString
+        |> SqliteConnectionStrings.ensureParentDirectoryExists
+        |> fun normalizedConnectionString -> performUpgrade normalizedConnectionString true
 
-    let upgradeDatabaseQuietly (connectionString: string) = performUpgrade connectionString false
+    let upgradeDatabaseQuietly (connectionString: string) =
+        connectionString
+        |> SqliteConnectionStrings.ensureParentDirectoryExists
+        |> fun normalizedConnectionString -> performUpgrade normalizedConnectionString false

@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ExampleRepositoryTests.fs" />
+    <Compile Include="SqliteConnectionStringsTests.fs" />
     <Compile Include="ExamplesControllerTests.fs" />
     <Compile Include="ControllerConventionsTests.fs" />
     <Compile Include="ExampleMcpToolsTests.fs" />

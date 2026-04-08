@@ -11,7 +11,8 @@ let private getConnectionString () =
         (SqliteConnectionStrings.isRunningInContainer ())
         (Directory.GetCurrentDirectory())
         "fsharp-starter.db"
-        (Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") |> Option.ofObj)
+        (Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+         |> Option.ofObj)
 
 [<EntryPoint>]
 let main _ =

@@ -7,8 +7,11 @@ open Xunit
 
 [<Fact>]
 let ``Local fallback uses repo data directory when no connection string is configured`` () =
-    let baseDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "api")
-    let expectedPath = Path.GetFullPath(Path.Combine(baseDirectory, "data", "fsharp-starter.db"))
+    let baseDirectory =
+        Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"), "api")
+
+    let expectedPath =
+        Path.GetFullPath(Path.Combine(baseDirectory, "data", "fsharp-starter.db"))
 
     let connectionString =
         SqliteConnectionStrings.resolveConnectionString false baseDirectory "fsharp-starter.db" None

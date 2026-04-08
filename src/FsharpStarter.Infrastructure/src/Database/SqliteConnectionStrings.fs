@@ -18,7 +18,11 @@ module SqliteConnectionStrings =
         configuredConnectionString
         |> Option.bind (fun value ->
             let trimmed = value.Trim()
-            if String.IsNullOrWhiteSpace(trimmed) then None else Some trimmed)
+
+            if String.IsNullOrWhiteSpace(trimmed) then
+                None
+            else
+                Some trimmed)
 
     let private defaultDataSource (runningInContainer: bool) (baseDirectory: string) (databaseFileName: string) =
         if runningInContainer then
@@ -40,8 +44,7 @@ module SqliteConnectionStrings =
                 match getDataSource connectionString with
                 | Some value -> value
                 | None ->
-                    invalidOp
-                        "SQLite connection string must set Data Source when DOTNET_RUNNING_IN_CONTAINER=true."
+                    invalidOp "SQLite connection string must set Data Source when DOTNET_RUNNING_IN_CONTAINER=true."
 
             let requiredRoot = Path.GetFullPath(containerDataRoot)
             let effectivePath = Path.GetFullPath(dataSource)

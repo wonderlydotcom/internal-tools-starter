@@ -1,5 +1,6 @@
 open System
 open System.Diagnostics
+open System.IO
 open FsharpStarter.Api.Auth
 open FsharpStarter.Api.Middleware
 open Microsoft.AspNetCore.Builder
@@ -15,6 +16,11 @@ open FsharpStarter.Infrastructure.Database
 [<EntryPoint>]
 let main args =
     let builder = WebApplication.CreateBuilder(args)
+    let runtimeSecretsPath = "/var/run/secrets/app"
+
+    if Directory.Exists(runtimeSecretsPath) then
+        builder.Configuration.AddKeyPerFile(runtimeSecretsPath, optional = true)
+        |> ignore
 
     builder.Services.AddControllers() |> ignore
     builder.Services.AddEndpointsApiExplorer() |> ignore

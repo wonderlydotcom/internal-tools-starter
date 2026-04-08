@@ -226,3 +226,5 @@ dist/
 terraform.tfvars
 infra/opentofu/terraform.tfvars
 !infra/opentofu/terraform.tfvars
+
+*.py[cod]

@@ -14,3 +14,9 @@ After each significant change:
 2. `dotnet build FsharpStarter.sln -c Release`
 3. `dotnet test FsharpStarter.sln`
 4. `cd www && npm run check && npm run lint && npm test`
+
+## Required PR Signoff Workflow
+- After making changes on a branch, run `./scripts/signoff-pr.sh` from that branch with no arguments.
+- Run it even if the pull request already exists; the script handles both PR updates and the required CI signoff.
+- If the script reports issues, fix them and re-run `./scripts/signoff-pr.sh` until it succeeds.
+- Do not bypass this workflow with manual GitHub signoff commands or alternate PR/signoff commands.

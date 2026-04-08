@@ -1,17 +1,17 @@
 open System
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
+open System.IO
 open FsharpStarter.Application.Handlers
 open FsharpStarter.Infrastructure.Database
 open FsharpStarter.McpServer.Tools
 
-let private defaultConnectionString = "Data Source=/app/data/fsharp-starter.db"
-
 let private getConnectionString () =
-    match Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") with
-    | null
-    | "" -> defaultConnectionString
-    | value -> value
+    SqliteConnectionStrings.resolveConnectionString
+        (SqliteConnectionStrings.isRunningInContainer ())
+        (Directory.GetCurrentDirectory())
+        "fsharp-starter.db"
+        (Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection") |> Option.ofObj)
 
 [<EntryPoint>]
 let main _ =

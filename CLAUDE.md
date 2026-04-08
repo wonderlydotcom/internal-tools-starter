@@ -91,6 +91,12 @@ After each meaningful change:
 5. Run the shared `review-backend` skill from the `internal-tools` MCP server on backend changes (`src/FsharpStarter.Domain`, `src/FsharpStarter.Application`, `src/FsharpStarter.Infrastructure`, `src/FsharpStarter.Api`).
 6. Run the shared `review-frontend` skill from the `internal-tools` MCP server on frontend changes (`www/`).
 
+## Required PR Signoff Workflow
+- After making changes on a branch, run `./scripts/signoff-pr.sh` from that branch with no arguments.
+- Run it even if the pull request already exists; the script handles both PR updates and the required CI signoff.
+- If the script reports issues, fix them and re-run `./scripts/signoff-pr.sh` until it succeeds.
+- Do not bypass this workflow with manual GitHub signoff commands or alternate PR/signoff commands.
+
 ## Template Reuse Checklist
 When copying this repo for a new project:
 1. Pick your project name and replace `FsharpStarter` / `fsharp-starter` tokens.

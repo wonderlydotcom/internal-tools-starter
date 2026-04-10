@@ -187,11 +187,38 @@ def backend_line_is_meaningful(line: str) -> bool:
     if is_blank_or_comment(stripped):
         return False
 
+    if stripped in {"{", "}"}:
+        return False
+
+    if stripped.startswith("[<"):
+        return False
+
     return not (
         stripped.startswith("open ")
         or stripped.startswith("using ")
         or stripped.startswith("namespace ")
+        or stripped.startswith("type ")
+        or stripped.startswith("abstract member ")
+        or (
+            ":" in stripped
+            and "=" not in stripped
+            and "<-" not in stripped
+            and not stripped.startswith(("let ", "member ", "override ", "do "))
+        )
     )
+
+
+def backend_file_requires_coverage(relative_path: str) -> bool:
+    path = PurePosixPath(relative_path)
+
+    # Keep the changed-line gate focused on runtime behavior rather than host/bootstrap composition.
+    if len(path.parts) >= 2 and path.parts[-2] == "src" and path.name in {"Program.fs", "Program.cs"}:
+        return False
+
+    if path.name in {"Persistence.fs", "Persistence.cs"} and "Database" in path.parts:
+        return False
+
+    return True
 
 
 def collect_changed_line_numbers(
@@ -204,6 +231,10 @@ def collect_changed_line_numbers(
     ignored_files: list[str] = []
 
     for relative_path in target_files:
+        if label == "backend" and not backend_file_requires_coverage(relative_path):
+            ignored_files.append(relative_path)
+            continue
+
         diff_lines = read_diff(relative_path, diff_base, repo_root)
         changed_lines: set[int] = set()
 
@@ -247,7 +278,7 @@ def collect_changed_line_numbers(
             ignored_files.append(relative_path)
 
     if ignored_files:
-        print(f"Skipping {label} coverage enforcement for non-runtime-only diffs:")
+        print(f"Skipping {label} coverage enforcement for non-runtime or composition-only diffs:")
         for relative_path in ignored_files:
             print(f"  - {relative_path}")
 

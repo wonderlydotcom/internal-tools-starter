@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <Compile Include="src/Auth/RequestUserContext.fs" />
+    <Compile Include="src/Middleware/ExceptionHandlerMiddleware.fs" />
     <Compile Include="src/Middleware/DevAuthMiddleware.fs" />
     <Compile Include="src/Middleware/IapAuthMiddleware.fs" />
     <Compile Include="src/Controllers/ExamplesController.fs" />

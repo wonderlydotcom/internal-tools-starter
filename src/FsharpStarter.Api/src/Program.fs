@@ -61,6 +61,8 @@ let main args =
 
     let app = builder.Build()
 
+    app.UseMiddleware<ExceptionHandlerMiddleware>() |> ignore
+
     if app.Environment.IsDevelopment() then
         app.UseMiddleware<DevAuthMiddleware>() |> ignore
     else

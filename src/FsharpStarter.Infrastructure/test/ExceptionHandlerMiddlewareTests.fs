@@ -38,7 +38,10 @@ let createContext () =
 
 let readResponseBody (context: HttpContext) =
     context.Response.Body.Seek(0L, SeekOrigin.Begin) |> ignore
-    use reader = new StreamReader(context.Response.Body, Encoding.UTF8, leaveOpen = true)
+
+    use reader =
+        new StreamReader(context.Response.Body, Encoding.UTF8, leaveOpen = true)
+
     reader.ReadToEnd()
 
 [<Fact>]

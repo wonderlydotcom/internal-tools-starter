@@ -54,7 +54,7 @@ let tamperTokenSignature (token: string) =
     let replacement = if lastCharacter = 'a' then 'b' else 'a'
     token.Substring(0, token.Length - 1) + string replacement
 
-let createJwtTestMaterial (audience: string) (email: string) =
+let createJwtTokenWithClaims (audience: string) (claims: Claim list) =
     let rsa = RSA.Create(2048)
     let key = RsaSecurityKey(rsa.ExportParameters(true))
     key.KeyId <- "test-key"
@@ -66,7 +66,7 @@ let createJwtTestMaterial (audience: string) (email: string) =
         JwtSecurityToken(
             issuer = "https://cloud.google.com/iap",
             audience = audience,
-            claims = [ Claim("email", email) ],
+            claims = claims,
             notBefore = Nullable(now.AddMinutes(-1.0)),
             expires = Nullable(now.AddMinutes(5.0)),
             signingCredentials = signingCredentials
@@ -80,24 +80,19 @@ let createJwtTestMaterial (audience: string) (email: string) =
     rsa.Dispose()
     token, jwksJson
 
-let configureServices (configValues: (string * string) list) (jwksJson: string) =
+let createJwtTestMaterial (audience: string) (email: string) =
+    createJwtTokenWithClaims audience [ Claim("email", email) ]
+
+let configureServicesWithResponder
+    (configValues: (string * string) list)
+    (responder: HttpRequestMessage -> HttpResponseMessage)
+    =
     let services = ServiceCollection()
 
     let configuration =
         ConfigurationBuilder().AddInMemoryCollection(configValues |> dict).Build()
 
-    let messageHandler =
-        new StubHttpMessageHandler(fun request ->
-            let response = new HttpResponseMessage(HttpStatusCode.OK)
-
-            match request.RequestUri with
-            | null ->
-                response.StatusCode <- HttpStatusCode.BadRequest
-                response.Content <- new StringContent("")
-                response
-            | _ ->
-                response.Content <- new StringContent(jwksJson, Encoding.UTF8, "application/json")
-                response)
+    let messageHandler = new StubHttpMessageHandler(responder)
 
     services.AddSingleton<IConfiguration>(configuration) |> ignore
 
@@ -105,6 +100,19 @@ let configureServices (configValues: (string * string) list) (jwksJson: string) 
     |> ignore
 
     services.BuildServiceProvider()
+
+let configureServices (configValues: (string * string) list) (jwksJson: string) =
+    configureServicesWithResponder configValues (fun request ->
+        let response = new HttpResponseMessage(HttpStatusCode.OK)
+
+        match request.RequestUri with
+        | null ->
+            response.StatusCode <- HttpStatusCode.BadRequest
+            response.Content <- new StringContent("")
+            response
+        | _ ->
+            response.Content <- new StringContent(jwksJson, Encoding.UTF8, "application/json")
+            response)
 
 [<Fact>]
 let ``Missing IAP assertion returns 401`` () = task {
@@ -364,4 +372,145 @@ let ``Valid request writes normalized request user context`` () = task {
         Assert.Equal(Some "Test User", user.Name)
         Assert.Equal(Some "https://example.test/me.png", user.Profile)
         Assert.Equal("iap", user.AuthenticationSource)
+}
+
+[<Fact>]
+let ``Missing audience when validation is enabled returns 500`` () = task {
+    let validToken, jwksJson =
+        createJwtTestMaterial "expected-audience" "test@wonderly.com"
+
+    let context = createContext "/api/examples"
+
+    let services =
+        configureServices
+            [
+                "Auth:IAP:ValidateJwt", "true"
+                "Auth:IAP:JwtCertsUrl", "https://example.test/jwks"
+            ]
+            jwksJson
+
+    context.RequestServices <- services
+    addHeader context "X-Goog-Iap-Jwt-Assertion" validToken |> ignore
+
+    addHeader context "X-Goog-Authenticated-User-Email" "accounts.google.com:test@wonderly.com"
+    |> ignore
+
+    let middleware =
+        IapAuthMiddleware(RequestDelegate(fun _ -> Task.CompletedTask), NullLogger<IapAuthMiddleware>.Instance)
+
+    do! middleware.InvokeAsync(context)
+
+    Assert.Equal(500, context.Response.StatusCode)
+    Assert.Contains("misconfigured", readResponseBody context)
+}
+
+[<Fact>]
+let ``JWKS fetch failures return 500`` () = task {
+    let validToken, _ = createJwtTestMaterial "expected-audience" "test@wonderly.com"
+
+    let context = createContext "/api/examples"
+
+    let services =
+        configureServicesWithResponder
+            [
+                "Auth:IAP:ValidateJwt", "true"
+                "Auth:IAP:JwtAudience", "expected-audience"
+                "Auth:IAP:JwtCertsUrl", "https://example.test/jwks"
+            ]
+            (fun _ ->
+                let response = new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                response.Content <- new StringContent("boom", Encoding.UTF8, "text/plain")
+                response)
+
+    context.RequestServices <- services
+    addHeader context "X-Goog-Iap-Jwt-Assertion" validToken |> ignore
+
+    addHeader context "X-Goog-Authenticated-User-Email" "accounts.google.com:test@wonderly.com"
+    |> ignore
+
+    let middleware =
+        IapAuthMiddleware(RequestDelegate(fun _ -> Task.CompletedTask), NullLogger<IapAuthMiddleware>.Instance)
+
+    do! middleware.InvokeAsync(context)
+
+    Assert.Equal(500, context.Response.StatusCode)
+    Assert.Contains("Failed to validate IAP JWT assertion", readResponseBody context)
+}
+
+[<Fact>]
+let ``Disabled JWT validation falls back to the configured email header`` () = task {
+    let context = createContext "/api/examples"
+
+    let services =
+        configureServices
+            [
+                "Auth:IAP:ValidateJwt", "false"
+                "Auth:IAP:EmailHeader", "X-Forwarded-Email"
+                "Auth:IAP:NameHeader", "X-Forwarded-Name"
+                "Auth:IAP:PictureHeader", "X-Forwarded-Picture"
+            ]
+            """{"keys":[]}"""
+
+    context.RequestServices <- services
+
+    addHeader context "X-Forwarded-Email" "accounts.google.com:fallback@wonderly.com"
+    |> ignore
+
+    addHeader context "X-Forwarded-Name" "Fallback User" |> ignore
+
+    addHeader context "X-Forwarded-Picture" "https://example.test/fallback.png"
+    |> ignore
+
+    let mutable nextInvoked = false
+    let mutable requestUser = None
+
+    let middleware =
+        IapAuthMiddleware(
+            RequestDelegate(fun ctx ->
+                nextInvoked <- true
+                requestUser <- RequestUserContext.tryGet ctx
+                ctx.Response.StatusCode <- 204
+                Task.CompletedTask),
+            NullLogger<IapAuthMiddleware>.Instance
+        )
+
+    do! middleware.InvokeAsync(context)
+
+    Assert.True(nextInvoked)
+    Assert.Equal(204, context.Response.StatusCode)
+
+    match requestUser with
+    | None -> failwith "Expected request user context to be set"
+    | Some user ->
+        Assert.Equal("fallback@wonderly.com", user.Email)
+        Assert.Equal(Some "Fallback User", user.Name)
+        Assert.Equal(Some "https://example.test/fallback.png", user.Profile)
+}
+
+[<Fact>]
+let ``Validated JWTs without an email claim return 401`` () = task {
+    let tokenWithoutEmail, jwksJson =
+        createJwtTokenWithClaims "expected-audience" [ Claim("sub", "user-123") ]
+
+    let context = createContext "/api/examples"
+
+    let services =
+        configureServices
+            [
+                "Auth:IAP:ValidateJwt", "true"
+                "Auth:IAP:JwtAudience", "expected-audience"
+                "Auth:IAP:JwtCertsUrl", "https://example.test/jwks"
+            ]
+            jwksJson
+
+    context.RequestServices <- services
+    addHeader context "X-Goog-Iap-Jwt-Assertion" tokenWithoutEmail |> ignore
+
+    let middleware =
+        IapAuthMiddleware(RequestDelegate(fun _ -> Task.CompletedTask), NullLogger<IapAuthMiddleware>.Instance)
+
+    do! middleware.InvokeAsync(context)
+
+    Assert.Equal(401, context.Response.StatusCode)
+    Assert.Contains("Invalid IAP JWT assertion", readResponseBody context)
 }

@@ -14,8 +14,8 @@
     <Compile Include="ExamplesControllerTests.fs" />
     <Compile Include="ControllerConventionsTests.fs" />
     <Compile Include="ExampleMcpToolsTests.fs" />
+    <Compile Include="RequestUserContextAndDevAuthMiddlewareTests.fs" />
     <Compile Include="IapAuthMiddlewareTests.fs" />
-    <Compile Include="ExceptionHandlerMiddlewareTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />

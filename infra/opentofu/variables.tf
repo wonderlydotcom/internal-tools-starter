@@ -1,7 +1,8 @@
 variable "kubeconfig_path" {
   description = "Path to the kubeconfig that has credentials for the shared internal-tools GKE cluster."
   type        = string
-  default     = "~/.kube/config"
+  default     = null
+  nullable    = true
 }
 
 variable "project_id" {

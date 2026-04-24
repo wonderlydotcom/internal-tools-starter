@@ -9,6 +9,7 @@
     <NoWarn>$(NoWarn);988</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AppTelemetryTests.fs" />
     <Compile Include="ExampleRepositoryTests.fs" />
     <Compile Include="SqliteConnectionStringsTests.fs" />
     <Compile Include="ExamplesControllerTests.fs" />

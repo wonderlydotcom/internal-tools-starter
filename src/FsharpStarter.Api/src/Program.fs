@@ -8,8 +8,7 @@ open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
-open OpenTelemetry.Resources
-open OpenTelemetry.Trace
+open FsharpStarter.Api.Telemetry
 open FsharpStarter.Application.Handlers
 open FsharpStarter.Infrastructure.Database
 
@@ -48,16 +47,11 @@ let main args =
     let activitySource = new ActivitySource("FsharpStarter.Api")
     builder.Services.AddSingleton<ActivitySource>(activitySource) |> ignore
 
-    builder.Services
-        .AddOpenTelemetry()
-        .WithTracing(fun tracing ->
-            tracing
-                .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("fsharp-starter-api"))
-                .AddSource("FsharpStarter.Api")
-                .AddAspNetCoreInstrumentation()
-                .AddEntityFrameworkCoreInstrumentation()
-            |> ignore)
-    |> ignore
+    AppTelemetrySettings.addConfiguredOpenTelemetry
+        builder.Services
+        "FsharpStarter.Api"
+        "fsharp-starter-api"
+        builder.Configuration
 
     let app = builder.Build()
 

@@ -46,7 +46,12 @@ let main args =
 
     let activitySource = new ActivitySource("FsharpStarter.Api")
     builder.Services.AddSingleton<ActivitySource>(activitySource) |> ignore
-    AppTelemetrySettings.addConfiguredOpenTelemetry builder.Services "FsharpStarter.Api" "fsharp-starter-api" builder.Configuration
+
+    AppTelemetrySettings.addConfiguredOpenTelemetry
+        builder.Services
+        "FsharpStarter.Api"
+        "fsharp-starter-api"
+        builder.Configuration
 
     let app = builder.Build()
 

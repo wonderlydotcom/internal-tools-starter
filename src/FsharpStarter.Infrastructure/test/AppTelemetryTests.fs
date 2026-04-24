@@ -188,7 +188,7 @@ let add_open_telemetry_registers_providers_and_otel_logging_options () =
             OtlpHeaders = ""
     }
 
-    AppTelemetrySettings.addOpenTelemetry services "" "" settingsWithoutExporter
+    AppTelemetrySettings.addOpenTelemetry services "FsharpStarter.Api" "fsharp-starter-api" settingsWithoutExporter
 
     use provider = services.BuildServiceProvider()
 
@@ -206,7 +206,7 @@ let add_open_telemetry_registers_providers_and_otel_logging_options () =
 let add_open_telemetry_registers_otlp_exporters_when_observability_is_configured () =
     let services = ServiceCollection()
 
-    AppTelemetrySettings.addOpenTelemetry services "" "" configuredSettings
+    AppTelemetrySettings.addOpenTelemetry services "FsharpStarter.Api" "fsharp-starter-api" configuredSettings
 
     use provider = services.BuildServiceProvider()
 
@@ -227,7 +227,7 @@ let add_configured_open_telemetry_reads_configuration_and_registers_telemetry_se
     let configuration =
         buildConfiguration [ "INTERNAL_TOOLS_APP_ID", "test-app"; "INTERNAL_TOOLS_TENANT_ID", "app-test" ]
 
-    AppTelemetrySettings.addConfiguredOpenTelemetry services "" "" configuration
+    AppTelemetrySettings.addConfiguredOpenTelemetry services "FsharpStarter.Api" "fsharp-starter-api" configuration
 
     use provider = services.BuildServiceProvider()
     Assert.NotNull(provider.GetService<TracerProvider>())

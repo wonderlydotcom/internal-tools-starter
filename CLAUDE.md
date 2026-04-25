@@ -55,6 +55,7 @@ Shared internal-tools skills are served by the deployed `internal-tools-mcp` ser
 - No bearer token or local secret bootstrap is required before starting either client.
 - Shared internal-tools workflows are now surfaced locally as thin `.agents/skills/*/SKILL.md` stubs that delegate to `internal-tools.use_workflow`.
 - If the right shared workflow is not obvious, call `internal-tools.recommend_workflows` first, then call `internal-tools.use_workflow` for the top match before editing.
+- Use `app-observability` for owner-safe app telemetry triage through `internal-tools logs`, `internal-tools traces`, `internal-tools metrics`, and `internal-tools alerts` before reaching for backend-specific debugging.
 - Before editing controllers or endpoints, load `new-controller` first.
 - Before editing EF Core mappings, repositories, or `DbContext` code, load `entity-framework-fsharp` first.
 - Before editing schema or migration code, load `db-migrations` first.
@@ -104,5 +105,5 @@ When copying this repo for a new project:
 3. Update the committed `infra/opentofu/terraform.tfvars` from `infra/opentofu/environments/dev/terraform.tfvars.example` and keep only non-secret values there.
 4. Point `infra/opentofu/backend.gcs.hcl.example` at the `state_bucket_name` from `../internal-tools-infra/platform/apps`.
 5. Use `scripts/deploy-app-from-tofu.sh` for image build, push, and rollout after the shared app contract exists.
-6. Keep the committed MCP wiring. Shared `.agents/skills` stubs are expected alongside repo-specific full local skills.
+6. Keep the committed MCP wiring. Shared `.agents/skills` stubs, including `app-observability`, are expected alongside repo-specific full local skills.
 If you also use the optional bootstrap stack in `infra/foundation/opentofu`, follow the bootstrap and backend-migration steps in `infra/foundation/opentofu/README.md`.

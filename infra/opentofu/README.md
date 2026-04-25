@@ -92,8 +92,11 @@ Local prerequisites for cluster deploys:
 The script:
 
 - builds and pushes the app image to the per-app Artifact Registry repo
-- applies `infra/opentofu` with the selected `image_tag`
+- resolves the pushed image to an immutable digest
+- runs a pre-promotion smoke `Job` with the candidate digest before changing production
+- applies `infra/opentofu` with the selected immutable image digest
 - waits for the `StatefulSet` rollout in the platform-created namespace
+- verifies the deployed workload still has ready pods and that the external health URL is reachable
 
 Useful overrides:
 
@@ -103,7 +106,16 @@ PUBLISH_LATEST=true scripts/deploy-app-from-tofu.sh
 scripts/deploy-app-from-tofu.sh -var-file=environments/dev/terraform.tfvars.example
 ```
 
-The selected `image_tag` is passed to OpenTofu at apply time and is not written back into `terraform.tfvars`.
+The selected `image_tag` is still used as the build tag, but normal deploys pass the resolved `image_digest` to OpenTofu so production is pinned to the exact image that passed the smoke gate. The selected image values are not written back into `terraform.tfvars`.
+
+Emergency overrides are intentionally explicit:
+
+```bash
+SKIP_PRE_PROMOTION_SMOKE=true scripts/deploy-app-from-tofu.sh
+ALLOW_ZERO_READY_BEFORE_DEPLOY=true scripts/deploy-app-from-tofu.sh
+ALLOW_SCALE_TO_ZERO_RECOVERY=true scripts/deploy-app-from-tofu.sh
+SKIP_PUBLIC_HEALTH_CHECK=true scripts/deploy-app-from-tofu.sh
+```
 
 ## App-Owned Changes
 

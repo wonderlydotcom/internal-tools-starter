@@ -38,6 +38,11 @@ output "image_ref" {
   description = "Fully-qualified Artifact Registry image reference used by the workload."
 }
 
+output "image_digest" {
+  value       = local.image_digest == "" ? null : local.image_digest
+  description = "Immutable image digest used by the workload when digest promotion is enabled."
+}
+
 output "runtime_service_account" {
   value       = var.platform_contract.runtime_service_account
   description = "Platform-managed Kubernetes service account used by the workload."
@@ -51,6 +56,21 @@ output "service_name" {
 output "pvc_name" {
   value       = var.platform_contract.pvc_name
   description = "Platform-managed PVC mounted into the workload."
+}
+
+output "health_check_path" {
+  value       = var.platform_contract.health_check_path
+  description = "HTTP path used by Kubernetes and platform health checks."
+}
+
+output "data_mount_path" {
+  value       = var.data_mount_path
+  description = "Container mount path for app data."
+}
+
+output "runtime_secrets_mount_path" {
+  value       = var.runtime_secrets_mount_path
+  description = "Container mount path for runtime secrets."
 }
 
 output "runtime_contract_config_map_name" {

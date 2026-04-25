@@ -595,61 +595,6 @@ spec:
         - name: api
           image: ${image_ref}
           imagePullPolicy: Always
-          command:
-            - python3
-            - -c
-            - |
-              import http.client
-              import subprocess
-              import sys
-              import time
-
-              health_path = sys.argv[1]
-              timeout_seconds = int(sys.argv[2])
-              deadline = time.time() + timeout_seconds
-              app = subprocess.Popen(["dotnet", "FsharpStarter.Api.dll"])
-              exit_code = 1
-
-              try:
-                  while time.time() < deadline:
-                      if app.poll() is not None:
-                          print(f"candidate app exited before becoming healthy: {app.returncode}", file=sys.stderr)
-                          sys.exit(app.returncode or 1)
-
-                      connection = None
-                      try:
-                          connection = http.client.HTTPConnection("127.0.0.1", 8080, timeout=5)
-                          connection.request("GET", health_path)
-                          response = connection.getresponse()
-                          response.read()
-
-                          if 200 <= response.status < 400:
-                              exit_code = 0
-                              break
-
-                          print(f"candidate health returned {response.status}", file=sys.stderr)
-                      except Exception as exc:
-                          print(f"candidate health not ready: {exc}", file=sys.stderr)
-                      finally:
-                          if connection is not None:
-                              connection.close()
-
-                      time.sleep(5)
-
-                  if exit_code != 0:
-                      print("candidate did not become healthy before timeout", file=sys.stderr)
-
-                  sys.exit(exit_code)
-              finally:
-                  if app.poll() is None:
-                      app.terminate()
-                      try:
-                          app.wait(timeout=30)
-                      except subprocess.TimeoutExpired:
-                          app.kill()
-                          app.wait()
-            - ${health_check_path}
-            - "${SMOKE_TIMEOUT_SECONDS}"
           ports:
             - name: http
               containerPort: 8080
@@ -673,6 +618,31 @@ spec:
 EOF
 }
 
+wait_for_smoke_pod_name() {
+  local namespace="$1"
+  local selector="$2"
+  local deadline=""
+  local pod_name=""
+
+  deadline="$(( $(date '+%s') + SMOKE_TIMEOUT_SECONDS ))"
+
+  while [[ "$(date '+%s')" -le "${deadline}" ]]; do
+    pod_name="$(
+      kubectl -n "${namespace}" get pods -l "${selector}" -o json \
+        | jq -r '.items | sort_by(.metadata.creationTimestamp) | last // empty | .metadata.name // empty'
+    )"
+
+    if [[ -n "${pod_name}" ]]; then
+      printf '%s' "${pod_name}"
+      return 0
+    fi
+
+    sleep 2
+  done
+
+  return 1
+}
+
 run_pre_promotion_smoke() {
   local namespace="$1"
   local workload_name="$2"
@@ -684,6 +654,8 @@ run_pre_promotion_smoke() {
   local health_check_path="$8"
   local data_mount_path="$9"
   local runtime_secrets_mount_path="${10}"
+  local smoke_pod_name=""
+  local smoke_selector=""
   local smoke_workload_name=""
 
   if is_true "${SKIP_PRE_PROMOTION_SMOKE}"; then
@@ -709,6 +681,7 @@ run_pre_promotion_smoke() {
   smoke_workload_name="$(make_k8s_name "${workload_name}-deploy-smoke-${IMAGE_TAG}-${RANDOM}")"
   SMOKE_NAMESPACE="${namespace}"
   SMOKE_WORKLOAD_NAME="${smoke_workload_name}"
+  smoke_selector="app.kubernetes.io/name=${SMOKE_WORKLOAD_NAME},internal-tools.wonderly.io/deploy-smoke=true"
 
   log "Running pre-promotion smoke Job ${SMOKE_WORKLOAD_NAME} with ${image_ref}"
   render_smoke_workload_manifest \
@@ -724,7 +697,14 @@ run_pre_promotion_smoke() {
     "${runtime_secrets_mount_path}" \
     | kubectl apply -f - >/dev/null
 
-  if ! kubectl -n "${namespace}" wait --for=condition=complete "job/${SMOKE_WORKLOAD_NAME}" --timeout "${SMOKE_TIMEOUT}"; then
+  if ! smoke_pod_name="$(wait_for_smoke_pod_name "${namespace}" "${smoke_selector}")"; then
+    echo "Pre-promotion smoke gate failed because no pod was created for ${image_ref}." >&2
+    print_rollout_debug "${namespace}" "job" "${SMOKE_WORKLOAD_NAME}"
+    cleanup_smoke_workload
+    exit 1
+  fi
+
+  if ! kubectl -n "${namespace}" wait --for=condition=Ready "pod/${smoke_pod_name}" --timeout "${SMOKE_TIMEOUT}"; then
     echo "Pre-promotion smoke gate failed for ${image_ref}." >&2
     print_rollout_debug "${namespace}" "job" "${SMOKE_WORKLOAD_NAME}"
     cleanup_smoke_workload

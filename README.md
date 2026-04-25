@@ -57,6 +57,7 @@ Shared internal-tools skills are now served by the deployed `internal-tools-mcp`
 - Claude Code reads [`.mcp.json`](./.mcp.json) and [`.claude/settings.json`](./.claude/settings.json).
 - No bearer token or local secret bootstrap is required before starting either client.
 - Generic shared workflows, including deploy, are surfaced locally as thin `.agents/skills/*/SKILL.md` stubs.
+- Use the shared `app-observability` workflow for owner-safe telemetry triage through `internal-tools logs`, `internal-tools traces`, `internal-tools metrics`, and `internal-tools alerts`.
 
 ## Quick Start
 ```bash

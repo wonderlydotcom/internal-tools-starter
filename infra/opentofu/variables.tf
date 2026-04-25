@@ -48,6 +48,22 @@ variable "image_tag" {
   }
 }
 
+variable "image_digest" {
+  description = "Optional immutable container image digest to deploy. When set, it takes precedence over image_tag."
+  type        = string
+  default     = null
+  nullable    = true
+
+  validation {
+    condition = (
+      var.image_digest == null
+      || trimspace(var.image_digest) == ""
+      || can(regex("^sha256:[a-f0-9]{64}$", trimspace(var.image_digest)))
+    )
+    error_message = "image_digest must be empty or a sha256 digest."
+  }
+}
+
 variable "workload_name" {
   description = "Name for the app-owned StatefulSet."
   type        = string

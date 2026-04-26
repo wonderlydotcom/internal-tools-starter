@@ -1,6 +1,7 @@
 module FsharpStarter.Infrastructure.Tests.ExceptionHandlerMiddlewareTests
 
 open System
+open System.Diagnostics
 open System.IO
 open System.Text
 open System.Text.Json
@@ -9,6 +10,8 @@ open FsharpStarter.Api.Middleware
 open Microsoft.AspNetCore.Http
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging.Abstractions
+open Microsoft.AspNetCore.Routing
+open Microsoft.AspNetCore.Routing.Patterns
 open Xunit
 
 type StubHostEnvironment(envName: string) =
@@ -43,6 +46,15 @@ let readResponseBody (context: HttpContext) =
         new StreamReader(context.Response.Body, Encoding.UTF8, leaveOpen = true)
 
     reader.ReadToEnd()
+
+let createRouteEndpoint template =
+    RouteEndpoint(
+        RequestDelegate(fun _ -> Task.CompletedTask),
+        RoutePatternFactory.Parse(template),
+        0,
+        EndpointMetadataCollection.Empty,
+        "test-endpoint"
+    )
 
 [<Fact>]
 let ``No exception passes through normally`` () = task {
@@ -117,4 +129,33 @@ let ``Exception in development returns 500 with details and stack trace`` () = t
     Assert.Equal("Internal Server Error", root.GetProperty("title").GetString())
     Assert.Equal("Dev error message", root.GetProperty("detail").GetString())
     Assert.True(root.TryGetProperty("stackTrace") |> fst, "Development response should include stack trace")
+}
+
+[<Fact>]
+let ``Exception annotates current activity with stable error metadata`` () = task {
+    let context = createContext ()
+    context.SetEndpoint(createRouteEndpoint "/api/examples/{id}")
+
+    use activity = new Activity("request")
+    activity.Start() |> ignore
+
+    let middleware =
+        ExceptionHandlerMiddleware(
+            RequestDelegate(fun _ -> raise (InvalidOperationException("Boom"))),
+            NullLogger<ExceptionHandlerMiddleware>.Instance,
+            StubHostEnvironment("Production")
+        )
+
+    do! middleware.Invoke(context)
+
+    Assert.Equal(ActivityStatusCode.Error, activity.Status)
+    Assert.Equal("/api/examples/{id}", activity.GetTagItem("http.route"))
+    Assert.Equal("InvalidOperation", activity.GetTagItem("error.group"))
+    Assert.Equal("System.InvalidOperationException", activity.GetTagItem("error.type"))
+
+    let exceptionEvent =
+        activity.Events
+        |> Seq.tryFind (fun activityEvent -> activityEvent.Name = "exception")
+
+    Assert.True(exceptionEvent.IsSome, "Exception should be recorded on the current activity")
 }

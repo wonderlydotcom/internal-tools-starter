@@ -148,10 +148,14 @@ let ``Exception annotates current activity with stable error metadata`` () = tas
 
     do! middleware.Invoke(context)
 
+    let routeTag = activity.GetTagItem("http.route") :?> string
+    let errorGroupTag = activity.GetTagItem("error.group") :?> string
+    let errorTypeTag = activity.GetTagItem("error.type") :?> string
+
     Assert.Equal(ActivityStatusCode.Error, activity.Status)
-    Assert.Equal("/api/examples/{id}", activity.GetTagItem("http.route"))
-    Assert.Equal("InvalidOperation", activity.GetTagItem("error.group"))
-    Assert.Equal("System.InvalidOperationException", activity.GetTagItem("error.type"))
+    Assert.Equal("/api/examples/{id}", routeTag)
+    Assert.Equal("InvalidOperation", errorGroupTag)
+    Assert.Equal("System.InvalidOperationException", errorTypeTag)
 
     let exceptionEvent =
         activity.Events

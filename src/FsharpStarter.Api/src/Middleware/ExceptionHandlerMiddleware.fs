@@ -28,7 +28,10 @@ module private ExceptionTelemetry =
     let errorGroup (ex: exn) =
         let name = ex.GetType().Name
 
-        if name.EndsWith("Exception", StringComparison.Ordinal) && name.Length > "Exception".Length then
+        if
+            name.EndsWith("Exception", StringComparison.Ordinal)
+            && name.Length > "Exception".Length
+        then
             name.Substring(0, name.Length - "Exception".Length)
         else
             name
